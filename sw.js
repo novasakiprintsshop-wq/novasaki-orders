@@ -1,5 +1,5 @@
-const CACHE = "novasaki-orders-v6";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./novasaki-logo.jpg", "./icon-novasaki-pwa.jpg"];
+const CACHE = "novasaki-orders-v7";
+const ASSETS = ["./","./index.html","./manifest.webmanifest","./novasaki-logo.jpg","./novasaki-logo.png","./icon-novasaki.jpg"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -7,11 +7,9 @@ self.addEventListener("install", event => {
 });
 
 self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
-  );
+  event.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
   self.clients.claim();
 });
 
