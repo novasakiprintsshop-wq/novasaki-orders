@@ -9,6 +9,7 @@
   "theme_color": "#111827",
   "orientation": "portrait-primary",
   "icons": [
-    {"src":"icon-novasaki.jpg","sizes":"96x96","type":"image/jpeg","purpose":"any maskable"}
+    {"src":"icon-novasaki-pwa.jpg?v=2","sizes":"192x192","type":"image/jpeg","purpose":"any maskable"},
+    {"src":"icon-novasaki-pwa.jpg?v=2","sizes":"512x512","type":"image/jpeg","purpose":"any maskable"}
   ]
 }
