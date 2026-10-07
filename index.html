@@ -1,15 +1,13 @@
 <!doctype html>
-<html lang="ms">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#8f647f">
-<title>Novasaki Order Manager V3</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#8f647f"><title>Novasaki Order Manager V3</title>
 <style>
 :root{--bg:#f7f4f6;--card:#fff;--text:#29252a;--muted:#77727a;--line:#e7e1e7;--accent:#8f647f;--soft:#f0e6ef;--ok:#4d8663;--warn:#b27a2a;--bad:#b44b4b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
-.app{max-width:900px;margin:auto;padding:14px;padding-bottom:80px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.top h1{font-size:22px;margin:0}.sub{font-size:12px;color:var(--muted)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}.grid4{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.stat{font-size:23px;font-weight:800}.label{font-size:11px;color:var(--muted);text-transform:uppercase}.form{display:grid;grid-template-columns:1.3fr 1fr 1fr .7fr;gap:8px}.form2{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-top:8px}
+.app{max-width:900px;margin:auto;padding:14px;padding-bottom:80px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.brand{display:flex;align-items:center;gap:10px}.logo{width:48px;height:48px;border-radius:12px}.top h1{font-size:22px;margin:0}.sub{font-size:12px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}.grid4{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.stat{font-size:23px;font-weight:800}.label{font-size:11px;color:var(--muted);text-transform:uppercase}.form{display:grid;grid-template-columns:1.3fr 1fr 1fr .7fr;gap:8px}.form2{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-top:8px}
 input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);padding:9px 10px;font-size:16px}button{min-height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);padding:8px 13px;font-weight:700}button.primary{background:var(--accent);border-color:var(--accent);color:#fff}button.soft{background:var(--soft)}button.danger{color:var(--bad)}
 .days{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.day{padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff}.day.today{border:2px solid var(--accent)}.bar{height:8px;background:#eee9ee;border-radius:8px;overflow:hidden;margin:8px 0}.fill{height:100%;background:var(--accent)}
 .tabs{display:flex;gap:6px;overflow:auto;padding-bottom:3px}.tabs button{white-space:nowrap;min-height:40px}.tabs button.active{background:var(--soft);border-color:var(--accent)}
@@ -19,192 +17,117 @@ input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:
 @media(max-width:650px){.app{padding:10px}.grid4{grid-template-columns:repeat(2,1fr)}.days{grid-template-columns:repeat(2,1fr)}.form,.form2{grid-template-columns:1fr 1fr}.order{grid-template-columns:1fr 1fr}.order .wide{grid-column:1/3}.order .actions{grid-column:1/3}.top{align-items:flex-start}.top .actions{justify-content:flex-end}}
 @media(max-width:420px){.form,.form2{grid-template-columns:1fr}.days{grid-template-columns:1fr}.top{flex-direction:column}.top .actions{width:100%}.top .actions button{flex:1}}
 </style>
-<link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#111827">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Novasaki Orders">
-<link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#111827"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Novasaki Orders"><link rel="icon" href="./icon-192.png">
 </head>
-<body>
-<div class="app">
+<body><div class="app">
 <header class="top">
- <div><h1>✂️ Novasaki Order Manager</h1><div class="sub">Novasaki Orders • Order, masa & target pendapatan</div></div>
+ <div class="brand"><img class="logo" src="./icon-192.png" alt="Novasaki logo"><div><h1>Novasaki Order Manager</h1><div class="sub">Order, schedule & revenue target</div></div></div>
  <div class="actions"><button id="backupBtn">💾 Backup</button><button id="importBtn">📥 Import</button><input id="fileInput" type="file" accept=".json" hidden></div>
 </header>
 
 <section class="grid4">
- <div class="card"><div class="label" id="todayLabel">Hari ini</div><div class="stat" id="sToday">0j</div><div class="small" id="cToday">0 order</div></div>
- <div class="card"><div class="label">Pendapatan hari ini</div><div class="stat" id="sIncome">RM 0</div><div class="small" id="incomeProgress">Target RM 100</div></div>
- <div class="card"><div class="label" id="tomorrowLabel">Esok</div><div class="stat" id="sTomorrow">0j</div><div class="small" id="cTomorrow">0 order</div><div class="small" id="iTomorrow" style="margin-top:3px">💰 RM 0</div></div>
- <div class="card"><div class="label">Belum siap</div><div class="stat" id="sPending">0</div></div>
+ <div class="card"><div class="label" id="todayLabel">Today</div><div class="stat" id="sToday">0h</div><div class="small" id="cToday">0 orders</div></div>
+ <div class="card"><div class="label">Total Revenue Today</div><div class="stat" id="sIncome">RM 0</div><div class="small" id="incomeProgress">Target RM 100</div></div>
+ <div class="card"><div class="label">Total Paid Today</div><div class="stat" id="sPaid">RM 0</div><div class="small" id="paidCount">0 paid orders</div></div>
+ <div class="card"><div class="label" id="tomorrowLabel">Tomorrow</div><div class="stat" id="sTomorrow">0h</div><div class="small" id="cTomorrow">0 orders</div><div class="small" id="iTomorrow" style="margin-top:3px">💰 RM 0</div></div>
+ <div class="card"><div class="label">Pending</div><div class="stat" id="sPending">0</div></div>
  <div class="card"><div class="label">Overdue</div><div class="stat" id="sOverdue">0</div></div>
 </section>
 
 <section class="card">
- <div class="row"><div><div class="sectionTitle">➕ Order Baru</div><div class="sub">Masukkan masa kerja awak sendiri.</div></div></div>
+ <div class="row"><div><div class="sectionTitle">➕ New Order</div><div class="sub">Enter your own estimated working time.</div></div></div>
  <div class="form" style="margin-top:10px">
-  <input id="name" placeholder="Nama customer">
-  <input id="desc" placeholder="Jenis topper">
-  <input id="due" type="date">
-  <input id="mins" type="number" min="1" placeholder="Minit">
+  <input id="name" placeholder="CUSTOMER NAME"><input id="desc" placeholder="ORDER DESCRIPTION"><input id="due" type="date"><input id="mins" type="number" min="1" placeholder="MINUTES">
  </div>
  <div class="form2">
   <select id="priority"><option value="Normal">🟢 Normal</option><option value="High">🟠 High</option><option value="Urgent">🔴 Urgent</option></select>
-  <select id="pay"><option>Belum bayar</option><option>Deposit</option><option>Lunas</option></select>
-  <input id="price" type="number" min="0" step=".01" placeholder="Harga RM">
-  <button class="primary" id="add">Tambah</button>
+  <select id="pay"><option>Unpaid</option><option>Deposit</option><option>Paid</option></select>
+  <input id="price" type="number" min="0" step=".01" placeholder="PRICE RM">
+  <select id="delivery"><option value="">DELIVERY</option><option>Pickup</option><option>Box Express</option><option>Grab</option><option>J&T</option></select>
  </div>
+ <div class="actions" style="justify-content:flex-end;margin-top:8px"><button class="primary" id="add">Add Order</button></div>
 </section>
 
-<section class="card">
- <div class="sectionTitle">⚙️ Kapasiti Harian</div>
- <div class="sub">Ini had selesa awak — bukan maksimum paksa diri.</div>
- <div class="form2" style="margin-top:9px">
-  <label><div class="small">Jam / hari</div><input id="capacity" type="number" min=".5" max="24" step=".5" value="5"></label>
-  <label><div class="small">Buffer %</div><input id="buffer" type="number" min="0" max="90" step="5" value="20"></label>
-  <div class="notice" id="capacityMsg">🟢 Selamat</div>
-  <button id="clear">Clear</button>
- </div>
+<section class="card"><div class="sectionTitle">⚙️ Daily Capacity</div><div class="sub">This is your comfortable limit — not a maximum to force yourself.</div>
+ <div class="form2" style="margin-top:9px"><label><div class="small">Hours / day</div><input id="capacity" type="number" min=".5" max="24" step=".5" value="5"></label><label><div class="small">Buffer %</div><input id="buffer" type="number" min="0" max="90" step="5" value="20"></label><div class="notice" id="capacityMsg">🟢 Comfortable</div><button id="clear">Clear All</button></div>
 </section>
 
-<section class="card">
- <div class="sectionTitle">💰 Target Pendapatan Harian</div>
- <div class="sub">Masukkan target awak, contohnya RM100 sehari. Jumlah dikira berdasarkan nilai order untuk hari tersebut.</div>
- <div class="form2" style="margin-top:9px">
-  <label><div class="small">Target RM / hari</div><input id="incomeTarget" type="number" min="0" step="1" value="100"></label>
-  <div class="notice" id="incomeMsg">💰 RM 0 / RM 100</div>
-  <div></div><div></div>
- </div>
- <div class="bar" style="margin-top:10px"><div class="fill" id="incomeFill" style="width:0%"></div></div>
- <div class="small" id="incomeSub">Baki target: RM 100</div>
+<section class="card"><div class="sectionTitle">💰 Daily Revenue Target</div><div class="sub">Enter your daily target. Total revenue is based on the order value for that date.</div>
+ <div class="form2" style="margin-top:9px"><label><div class="small">Target RM / day</div><input id="incomeTarget" type="number" min="0" step="1" value="100"></label><div class="notice" id="incomeMsg">💰 RM 0 / RM 100</div><div></div><div></div></div>
+ <div class="bar" style="margin-top:10px"><div class="fill" id="incomeFill" style="width:0%"></div></div><div class="small" id="incomeSub">Remaining target: RM 100</div>
 </section>
 
-<section class="card">
- <div class="sectionTitle">📆 Workload 4 Hari</div>
- <div class="sub">Hari merah = jangan tambah order baru jika boleh.</div>
- <div class="days" id="days" style="margin-top:10px"></div>
-</section>
+<section class="card"><div class="sectionTitle">📆 4-Day Workload</div><div class="sub">Red = avoid adding new orders if possible.</div><div class="days" id="days" style="margin-top:10px"></div></section>
 
-<section class="card">
- <div class="row"><div><div class="sectionTitle">📋 Order Board</div><div class="sub">Tap Edit untuk ubah order.</div></div></div>
- <div class="tabs" style="margin-top:10px">
-  <button class="tab active" data-filter="all">Semua</button><button class="tab" data-filter="today">Hari ini</button><button class="tab" data-filter="tomorrow">Esok</button><button class="tab" data-filter="pending">Belum siap</button><button class="tab" data-filter="overdue">Overdue</button>
- </div>
+<section class="card"><div class="row"><div><div class="sectionTitle">📋 Order Board</div><div class="sub">Tap Edit to update an order.</div></div></div>
+ <div class="tabs" style="margin-top:10px"><button class="tab active" data-filter="all">All</button><button class="tab" data-filter="today">Today</button><button class="tab" data-filter="tomorrow">Tomorrow</button><button class="tab" data-filter="pending">Pending</button><button class="tab" data-filter="overdue">Overdue</button></div>
  <div id="orders"></div>
 </section>
 
-<section class="card">
- <div class="sectionTitle">📤 Pindah PC ↔ Phone</div>
- <div class="sub">Backup akan jadi fail JSON. Export di satu device, kemudian Import di device lain.</div>
- <div class="actions" style="margin-top:9px"><button class="primary" id="backup2">Download Backup</button><button id="import2">Import Backup</button></div>
-</section>
+<section class="card"><div class="sectionTitle">💳 Ready but Unpaid</div><div class="sub">Orders marked Ready with payment not completed.</div><div id="readyUnpaid" class="empty">No ready unpaid orders.</div></section>
+
+<section class="card"><div class="sectionTitle">📤 Move PC ↔ Phone</div><div class="sub">Backup creates a JSON file. Export on one device, then Import on another.</div><div class="actions" style="margin-top:9px"><button class="primary" id="backup2">Download Backup</button><button id="import2">Import Backup</button></div></section>
 </div>
 
 <div class="modal" id="modal"><div class="sheet">
  <div class="row"><div class="sectionTitle">✏️ Edit Order</div><button id="close">×</button></div>
- <div class="form" style="margin-top:12px">
-  <input id="eName"><input id="eDesc"><input id="eDue" type="date"><input id="eMins" type="number" min="1">
- </div>
- <div class="form2">
-  <select id="ePriority"><option>Normal</option><option>High</option><option>Urgent</option></select>
-  <select id="ePay"><option>Belum bayar</option><option>Deposit</option><option>Lunas</option></select>
-  <input id="ePrice" type="number" min="0" step=".01">
-  <select id="eStatus"><option>New</option><option>Design</option><option>Approved</option><option>Print</option><option>Cut</option><option>Assemble</option><option>Ready</option></select>
- </div>
- <input id="eNote" style="margin-top:8px" placeholder="Nota">
- <div class="actions" style="justify-content:flex-end;margin-top:10px"><button id="cancel">Batal</button><button class="primary" id="saveEdit">Simpan</button></div>
+ <div class="form" style="margin-top:12px"><input id="eName"><input id="eDesc"><input id="eDue" type="date"><input id="eMins" type="number" min="1"></div>
+ <div class="form2"><select id="ePriority"><option>Normal</option><option>High</option><option>Urgent</option></select><select id="ePay"><option>Unpaid</option><option>Deposit</option><option>Paid</option></select><input id="ePrice" type="number" min="0" step=".01"><select id="eDelivery"><option value="">Delivery</option><option>Pickup</option><option>Box Express</option><option>Grab</option><option>J&T</option></select></div>
+ <div class="form2"><select id="eStatus"><option>New</option><option>Design</option><option>Approved</option><option>Print</option><option>Cut</option><option>Assemble</option><option>Ready</option></select><input id="eNote" placeholder="NOTE"><div></div><div></div></div>
+ <div class="actions" style="justify-content:flex-end;margin-top:10px"><button id="cancel">Cancel</button><button class="primary" id="saveEdit">Save</button></div>
 </div></div>
 
 <script>
-const KEY="novasaki_order_manager_v2";
-const SETTINGS_KEY="novasaki_order_manager_v3_settings";
+const KEY="novasaki_order_manager_v2",SETTINGS_KEY="novasaki_order_manager_v3_settings";
 let orders=[];try{orders=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){orders=[]}
-let filter="all",editId=null;
-let settings={incomeTarget:100};
-try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")}}catch(e){}
-
-const $=id=>document.getElementById(id);
-const today=()=>{let d=new Date();d.setHours(0,0,0,0);return d};
-const addDays=n=>{let d=today();d.setDate(d.getDate()+n);return d};
+let filter="all",editId=null,settings={incomeTarget:100};try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")}}catch(e){}
+const $=id=>document.getElementById(id),today=()=>{let d=new Date();d.setHours(0,0,0,0);return d},addDays=n=>{let d=today();d.setDate(d.getDate()+n);return d};
 const iso=d=>{let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return y+"-"+m+"-"+day};
-const dueKey=value=>{
-  const s=String(value||"").trim();
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  let m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
-  if(m) return m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0");
-  return s.slice(0,10);
-};
-const fmt=m=>{m=Math.round(Number(m)||0);return Math.floor(m/60)+"j "+m%60+"m"};
-const save=()=>localStorage.setItem(KEY,JSON.stringify(orders));
-const esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
-function totals(date){
-  const k=iso(date);
-  let mins=0,count=0,income=0;
-  orders.forEach(o=>{
-    if(dueKey(o.due)===k){
-      count++;
-      income+=Number(o.price)||0;
-      if(o.status!=="Ready") mins+=Number(o.mins)||0;
-    }
-  });
-  return {mins,count,income};
-}
-const money=n=>"RM "+Number(n||0).toFixed(2);
-function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}
+const dueKey=value=>{const s=String(value||"").trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;let m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);return m?m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0"):s.slice(0,10)};
+const fmt=m=>{m=Math.round(Number(m)||0);return Math.floor(m/60)+"h "+m%60+"m"},money=n=>"RM "+Number(n||0).toFixed(2),save=()=>localStorage.setItem(KEY,JSON.stringify(orders)),esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+const normPay=p=>{p=String(p||"").trim();return p==="Lunas"||p==="Paid"?"Paid":p==="Deposit"?"Deposit":"Unpaid"};
+const normOrder=o=>({...o,due:dueKey(o.due),pay:normPay(o.pay),delivery:o.delivery||"",status:o.status||"New"});
+orders=orders.map(normOrder);
 
+function totals(date){const k=iso(date);let mins=0,count=0,income=0,paid=0,paidCount=0;orders.forEach(o=>{if(dueKey(o.due)===k){count++;income+=Number(o.price)||0;if(normPay(o.pay)==="Paid"){paid+=Number(o.price)||0;paidCount++}if(o.status!=="Ready")mins+=Number(o.mins)||0}});return{mins,count,income,paid,paidCount}}
+function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}
 function render(){
+ orders.forEach(o=>{o.due=dueKey(o.due);o.pay=normPay(o.pay)});
  orders.sort((a,b)=>a.due.localeCompare(b.due)||(a.priority==="Urgent"?-1:1));
  let cap=Math.max(.5,Number($("capacity").value)||5)*60,usable=cap*(1-Math.min(90,Math.max(0,Number($("buffer").value)||0))/100);
- const todayDate=today(), tomorrowDate=addDays(1);
- orders.forEach(o=>{if(o.due)o.due=dueKey(o.due)});
- $("todayLabel").textContent="Hari ini ("+todayDate.toLocaleDateString("ms-MY",{day:"2-digit",month:"2-digit"})+")";
- $("tomorrowLabel").textContent="Esok ("+tomorrowDate.toLocaleDateString("ms-MY",{day:"2-digit",month:"2-digit"})+")";
- let t=totals(todayDate),tm=totals(tomorrowDate);
- let target=Math.max(0,Number(settings.incomeTarget)||0), pct=target>0?Math.min(100,Math.round(t.income/target*100)):0, remaining=Math.max(0,target-t.income);
- $("sToday").textContent=fmt(t.mins);$("cToday").textContent=t.count+" order";
- $("sTomorrow").textContent=fmt(tm.mins);
- $("cTomorrow").textContent=tm.count+" order";
- $("iTomorrow").textContent="💰 "+money(tm.income).replace(".00","");
- $("sIncome").textContent=money(t.income).replace(".00","");
- $("incomeProgress").textContent="Target "+money(target).replace(".00","");
- $("incomeFill").style.width=pct+"%";
- $("incomeSub").textContent=target<=0?"Tiada target ditetapkan.":(remaining>0?"Baki target: "+money(remaining):"🎉 Target harian tercapai! Lebih "+money(t.income-target));
- $("incomeMsg").textContent=target<=0?"💰 Tiada target":(t.income>=target?"🎉 Target tercapai":"💰 "+money(t.income)+" / "+money(target));
- $("sPending").textContent=orders.filter(o=>o.status!=="Ready").length;
- $("sOverdue").textContent=orders.filter(o=>dueKey(o.due)<iso(today())&&o.status!=="Ready").length;
- $("capacityMsg").textContent=t.mins>cap?"🔴 Overload":t.mins>usable?"🟠 Buffer hampir habis":"🟢 Kapasiti selesa";
- $("days").innerHTML=[0,1,2,3].map(i=>{let d=addDays(i),x=totals(d),p=Math.min(100,Math.round(x.mins/cap*100));let label=i===0?"Hari ini":i===1?"Esok":d.toLocaleDateString("ms-MY",{weekday:"short",day:"numeric",month:"short"});let state=x.mins>cap?"🔴 OVERLOAD":x.mins>usable?"🟠 BUFFER":"🟢 AVAILABLE";return `<div class="day ${i===0?"today":""}"><b>${label}</b><div class="small">${x.count} order</div><div style="margin-top:7px;font-weight:700">${fmt(x.mins)} / ${fmt(cap)}</div><div class="bar"><div class="fill" style="width:${p}%"></div></div><div class="small">${state} • ${Math.max(0,100-p)}% free</div><div class="small" style="margin-top:6px">💰 ${money(x.income).replace(".00","")}</div></div>`}).join("");
- let arr=orders.filter(o=>filter==="today"?dueKey(o.due)===iso(today()):filter==="tomorrow"?dueKey(o.due)===iso(addDays(1)):filter==="pending"?o.status!=="Ready":filter==="overdue"?dueKey(o.due)<iso(today())&&o.status!=="Ready":true);
- if(!arr.length){$("orders").innerHTML='<div class="empty">Tiada order dalam paparan ini.</div>';return}
- $("orders").innerHTML=arr.map(o=>{let over=dueKey(o.due)<iso(today())&&o.status!=="Ready";let p=o.priority==="Urgent"?"🔴":o.priority==="High"?"🟠":"🟢";return `<div class="order"><div><b>${p} ${esc(o.name)}</b><div class="small">${esc(o.desc||"Topper")}</div><div class="small">💳 ${esc(o.pay)}</div></div><div><span class="badge">${fmt(o.mins)}</span><div class="small">RM ${Number(o.price||0).toFixed(2)}</div></div><div class="${over?"bad":""}">${esc(o.due)}${over?" 🔴":""}</div><div class="wide"><select class="status" data-id="${o.id}">${["New","Design","Approved","Print","Cut","Assemble","Ready"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}</select></div><div class="actions"><button class="edit" data-id="${o.id}">Edit</button><button class="danger del" data-id="${o.id}">×</button></div></div>`}).join("");
+ const td=today(),tmD=addDays(1),t=totals(td),tm=totals(tmD),target=Math.max(0,Number(settings.incomeTarget)||0),pct=target>0?Math.min(100,Math.round(t.income/target*100)):0,remaining=Math.max(0,target-t.income);
+ $("todayLabel").textContent="Today ("+td.toLocaleDateString("en-MY",{day:"2-digit",month:"2-digit"})+")";$("tomorrowLabel").textContent="Tomorrow ("+tmD.toLocaleDateString("en-MY",{day:"2-digit",month:"2-digit"})+")";
+ $("sToday").textContent=fmt(t.mins);$("cToday").textContent=t.count+" orders";$("sTomorrow").textContent=fmt(tm.mins);$("cTomorrow").textContent=tm.count+" orders";$("iTomorrow").textContent="💰 "+money(tm.income).replace(".00","");
+ $("sIncome").textContent=money(t.income).replace(".00","");$("incomeProgress").textContent="Target "+money(target).replace(".00","");
+ $("sPaid").textContent=money(t.paid).replace(".00","");$("paidCount").textContent=t.paidCount+" paid orders";
+ $("incomeFill").style.width=pct+"%";$("incomeSub").textContent=target<=0?"No target set.":remaining>0?"Remaining target: "+money(remaining):"🎉 Daily target reached! Extra "+money(t.income-target);
+ $("incomeMsg").textContent=target<=0?"💰 No target":t.income>=target?"🎉 Target reached":"💰 "+money(t.income)+" / "+money(target);
+ $("sPending").textContent=orders.filter(o=>o.status!=="Ready").length;$("sOverdue").textContent=orders.filter(o=>dueKey(o.due)<iso(td)&&o.status!=="Ready").length;
+ $("capacityMsg").textContent=t.mins>cap?"🔴 Overload":t.mins>usable?"🟠 Buffer almost used":"🟢 Comfortable";
+ $("days").innerHTML=[0,1,2,3].map(i=>{let d=addDays(i),x=totals(d),p=Math.min(100,Math.round(x.mins/cap*100)),label=i===0?"Today":i===1?"Tomorrow":d.toLocaleDateString("en-MY",{weekday:"short",day:"numeric",month:"short"}),state=x.mins>cap?"🔴 OVERLOAD":x.mins>usable?"🟠 BUFFER":"🟢 AVAILABLE";return '<div class="day '+(i===0?"today":"")+'"><b>'+label+'</b><div class="small">'+x.count+' orders</div><div style="margin-top:7px;font-weight:700">'+fmt(x.mins)+' / '+fmt(cap)+'</div><div class="bar"><div class="fill" style="width:'+p+'%"></div></div><div class="small">'+state+' • '+Math.max(0,100-p)+'% free</div><div class="small" style="margin-top:6px">💰 '+money(x.income).replace(".00","")+'</div></div>'}).join("");
+ let arr=orders.filter(o=>filter==="today"?dueKey(o.due)===iso(td):filter==="tomorrow"?dueKey(o.due)===iso(tmD):filter==="pending"?o.status!=="Ready":filter==="overdue"?dueKey(o.due)<iso(td)&&o.status!=="Ready":true);
+ $("orders").innerHTML=arr.length?arr.map(o=>{let over=dueKey(o.due)<iso(td)&&o.status!=="Ready",p=o.priority==="Urgent"?"🔴":o.priority==="High"?"🟠":"🟢";return '<div class="order"><div><b>'+p+" "+esc(o.name)+'</b><div class="small">'+esc(o.desc||"Order")+'</div><div class="small">💳 '+esc(normPay(o.pay))+' • '+esc(o.delivery||"No delivery")+'</div></div><div><span class="badge">'+fmt(o.mins)+'</span><div class="small">RM '+Number(o.price||0).toFixed(2)+'</div></div><div class="'+(over?"bad":"")+'">'+esc(o.due)+(over?" 🔴":"")+'</div><div class="wide"><select class="status" data-id="'+o.id+'">'+["New","Design","Approved","Print","Cut","Assemble","Ready"].map(s=>'<option '+(o.status===s?"selected":"")+'>'+s+"</option>").join("")+'</select></div><div class="actions"><button class="edit" data-id="'+o.id+'">Edit</button><button class="danger del" data-id="'+o.id+'">×</button></div></div>'}).join(""):'<div class="empty">No orders in this view.</div>';
+ const ready=orders.filter(o=>o.status==="Ready"&&normPay(o.pay)!=="Paid");
+ $("readyUnpaid").innerHTML=ready.length?ready.map(o=>'<div class="notice" style="margin-top:7px">👤 <b>'+esc(o.name)+'</b> • '+esc(o.desc||"Order")+' • RM '+Number(o.price||0).toFixed(2)+' • '+esc(normPay(o.pay))+' • '+esc(o.delivery||"No delivery")+'</div>').join(""):'<div class="empty">No ready unpaid orders.</div>';
  document.querySelectorAll(".status").forEach(s=>s.onchange=()=>{let o=orders.find(x=>String(x.id)===s.dataset.id);if(o){o.status=s.value;save();render()}});
- document.querySelectorAll(".del").forEach(b=>b.onclick=()=>{if(confirm("Padam order ini?")){orders=orders.filter(x=>String(x.id)!==b.dataset.id);save();render()}});
+ document.querySelectorAll(".del").forEach(b=>b.onclick=()=>{if(confirm("Delete this order?")){orders=orders.filter(x=>String(x.id)!==b.dataset.id);save();render()}});
  document.querySelectorAll(".edit").forEach(b=>b.onclick=()=>openEdit(b.dataset.id));
 }
-function clearAdd(){["name","desc","mins","price"].forEach(x=>$(x).value="");$("due").value=iso(today());$("priority").value="Normal";$("pay").value="Belum bayar"}
-function addOrder(){let name=$("name").value.trim(),due=$("due").value,mins=Number($("mins").value);if(!name||!due||mins<1){alert("Isi nama, tarikh siap dan masa kerja.");return}orders.push({id:Date.now()+Math.random(),name,desc:$("desc").value.trim(),due,mins,price:Number($("price").value)||0,priority:$("priority").value,pay:$("pay").value,status:"New",note:""});save();clearAdd();render()}
-function openEdit(id){let o=orders.find(x=>String(x.id)===String(id));if(!o)return;editId=id;$("eName").value=o.name;$("eDesc").value=o.desc||"";$("eDue").value=o.due;$("eMins").value=o.mins;$("ePrice").value=o.price||0;$("ePriority").value=o.priority||"Normal";$("ePay").value=o.pay||"Belum bayar";$("eStatus").value=o.status||"New";$("eNote").value=o.note||"";$("modal").classList.add("show")}
+function clearAdd(){$("name").value="";$("desc").value="";$("mins").value="";$("price").value="";$("due").value=iso(today());$("priority").value="Normal";$("pay").value="Unpaid";$("delivery").value=""}
+function addOrder(){let name=$("name").value.trim().toUpperCase(),desc=$("desc").value.trim().toUpperCase(),due=$("due").value,mins=Number($("mins").value);if(!name||!due||mins<1){alert("Please enter customer name, due date and working time.");return}orders.push({id:Date.now()+Math.random(),name,desc,due,mins,price:Number($("price").value)||0,priority:$("priority").value,pay:normPay($("pay").value),delivery:$("delivery").value,status:"New",note:""});save();clearAdd();render()}
+function openEdit(id){let o=orders.find(x=>String(x.id)===String(id));if(!o)return;editId=id;$("eName").value=o.name;$("eDesc").value=o.desc||"";$("eDue").value=o.due;$("eMins").value=o.mins;$("ePrice").value=o.price||0;$("ePriority").value=o.priority||"Normal";$("ePay").value=normPay(o.pay);$("eDelivery").value=o.delivery||"";$("eStatus").value=o.status||"New";$("eNote").value=o.note||"";$("modal").classList.add("show")}
 function closeEdit(){$("modal").classList.remove("show");editId=null}
-function saveEdit(){let o=orders.find(x=>String(x.id)===String(editId));if(!o)return;o.name=$("eName").value.trim()||o.name;o.desc=$("eDesc").value.trim();o.due=$("eDue").value;o.mins=Math.max(1,Number($("eMins").value)||o.mins);o.price=Number($("ePrice").value)||0;o.priority=$("ePriority").value;o.pay=$("ePay").value;o.status=$("eStatus").value;o.note=$("eNote").value.trim();save();closeEdit();render()}
-function backup(){let blob=new Blob([JSON.stringify({version:3,exported:new Date().toISOString(),settings,orders},null,2)],{type:"application/json"});let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Novasaki_Order_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function importFile(file){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result),incoming=Array.isArray(x)?x:x.orders;if(!Array.isArray(incoming))throw 0;if(!confirm("Import akan menggantikan order sedia ada. Teruskan?"))return;orders=incoming.map(o=>({...o,due:dueKey(o.due)}));
-if(x.settings&&typeof x.settings==="object"){settings={...settings,...x.settings};saveSettings();$("incomeTarget").value=settings.incomeTarget||0}
-save();render();alert("Backup berjaya diimport.")}catch(e){alert("Fail backup tidak sah.")}};r.readAsText(file)}
-$("due").value=iso(today());
-$("incomeTarget").value=settings.incomeTarget;
+function saveEdit(){let o=orders.find(x=>String(x.id)===String(editId));if(!o)return;o.name=$("eName").value.trim().toUpperCase()||o.name;o.desc=$("eDesc").value.trim().toUpperCase();o.due=$("eDue").value;o.mins=Math.max(1,Number($("eMins").value)||o.mins);o.price=Number($("ePrice").value)||0;o.priority=$("ePriority").value;o.pay=normPay($("ePay").value);o.delivery=$("eDelivery").value;o.status=$("eStatus").value;o.note=$("eNote").value.trim().toUpperCase();save();closeEdit();render()}
+function backup(){let blob=new Blob([JSON.stringify({version:4,exported:new Date().toISOString(),settings,orders},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Novasaki_Order_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function importFile(file){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result),incoming=Array.isArray(x)?x:x.orders;if(!Array.isArray(incoming))throw 0;if(!confirm("Import will replace existing orders. Continue?"))return;orders=incoming.map(normOrder);if(x.settings&&typeof x.settings==="object"){settings={...settings,...x.settings};saveSettings();$("incomeTarget").value=settings.incomeTarget||0}save();render();alert("Backup imported successfully.")}catch(e){alert("Invalid backup file.")}};r.readAsText(file)}
+$("due").value=iso(today());$("incomeTarget").value=settings.incomeTarget;
 $("incomeTarget").oninput=()=>{settings.incomeTarget=Math.max(0,Number($("incomeTarget").value)||0);saveSettings();render()};
-$("add").onclick=addOrder;$("capacity").oninput=render;$("buffer").oninput=render;
-$("clear").onclick=()=>{if(confirm("Padam SEMUA order?")){orders=[];save();render()}};
+$("add").onclick=addOrder;$("capacity").oninput=render;$("buffer").oninput=render;$("clear").onclick=()=>{if(confirm("Delete ALL orders?")){orders=[];save();render()}};
+["name","desc"].forEach(id=>$(id).addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase()}));
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;render()});
 $("backupBtn").onclick=backup;$("backup2").onclick=backup;$("importBtn").onclick=()=>$("fileInput").click();$("import2").onclick=()=>$("fileInput").click();$("fileInput").onchange=e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value=""};
 $("close").onclick=closeEdit;$("cancel").onclick=closeEdit;$("saveEdit").onclick=saveEdit;
 render();
 </script>
-<script>
-if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-  navigator.serviceWorker.register("./sw.js").catch(()=>{});
-}
-</script>
-</body>
-</html>
+<script>if("serviceWorker"in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))navigator.serviceWorker.register("./sw.js").catch(()=>{});</script>
+</body></html>
