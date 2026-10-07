@@ -1,5 +1,5 @@
-const CACHE = "novasaki-orders-v5";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./novasaki-logo.jpg", "./icon-192.png", "./icon-512.png"];
+const CACHE = "novasaki-orders-v6";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./novasaki-logo.jpg", "./icon-novasaki-pwa.jpg"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
