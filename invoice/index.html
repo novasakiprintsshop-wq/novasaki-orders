@@ -27,7 +27,16 @@ async function refreshSuggestions(){
   fillQuickSelect(editItemQuick,items);
 }
 function filterBy(x){mode=x;allTab.className=x==='ALL'?'on':'';uTab.className=x==='UNPAID'?'on':'';pTab.className=x==='PAID'?'on':'';render()}
-function openAdd(){photoData=null;inv.value='';cust.value='';dt.value='';itm.value='';amt.value='';st.value='UNPAID';pic.classList.add('hide');ocr.classList.add('hide');msg.textContent='Take a clear photo of the invoice.';addModal.style.display='flex'}
+async function getNextInvoiceNo(){
+  const a=await getAll();
+  let max=0;
+  for(const x of a){
+    const m=String(x.invNo||'').trim().match(/^NS\s*([0-9]+)$/i);
+    if(m)max=Math.max(max,Number(m[1]));
+  }
+  return 'NS'+String(max+1).padStart(3,'0');
+}
+async function openAdd(){photoData=null;inv.value=await getNextInvoiceNo();cust.value='';dt.value='';itm.value='';amt.value='';st.value='UNPAID';pic.classList.add('hide');ocr.classList.add('hide');msg.textContent='Take a clear photo of the invoice.';addModal.style.display='flex'}
 function closeAdd(){addModal.style.display='none'}
 function retake(){photo.value='';photoData=null;pic.classList.add('hide');ocr.classList.add('hide');inv.value='';cust.value='';itm.value='';amt.value='';msg.textContent='Take a clearer photo. Keep the invoice flat, upright and well lit.';photo.click()}
 function readPhoto(file){return new Promise(ok=>{let r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(file)})}
