@@ -1,1 +1,26 @@
-{"name":"Invoice Record","short_name":"Invoice Record","start_url":"./index.html","scope":"./","display":"standalone","background_color":"#f5f7fb","theme_color":"#111827","icons":[{"src":"../icon-192.png","sizes":"192x192","type":"image/png"},{"src":"../icon-512.png","sizes":"512x512","type":"image/png"}]}
+{
+  "id": "/novasaki-orders/invoice/",
+  "name": "Invoice Record",
+  "short_name": "Invoice Record",
+  "description": "Invoice photo and payment record",
+  "start_url": "/novasaki-orders/invoice/index.html",
+  "scope": "/novasaki-orders/invoice/",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#111827",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/novasaki-orders/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/novasaki-orders/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
