@@ -25,6 +25,15 @@ input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:
  <div class="actions"><button id="backupBtn">💾 Backup</button><button id="importBtn">📥 Import</button><input id="fileInput" type="file" accept=".json" hidden></div>
 </header>
 
+<section class="card" id="cloudCard">
+ <div class="row"><div><div class="sectionTitle">☁️ Phone ↔ PC Sync</div><div class="sub" id="cloudStatus">Sign in to sync orders across devices.</div></div><button id="syncNow" class="soft">Sync now</button></div>
+ <div id="authPanel" style="margin-top:10px">
+  <div class="form2"><input id="cloudEmail" type="email" autocomplete="username" placeholder="Email address"><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"><button class="primary" id="signInBtn">Sign in</button><button id="signUpBtn">Create account</button></div>
+  <div class="small" style="margin-top:8px">Use the same email and password on your phone and PC. Create the account once, then sign in on the other device.</div>
+ </div>
+ <div id="signedPanel" style="display:none;margin-top:10px" class="actions"><span class="notice" id="signedEmail"></span><button id="signOutBtn">Sign out</button></div>
+</section>
+
 <section class="grid4">
  <div class="card"><div class="label" id="todayLabel">Today</div><div class="stat" id="sToday">0h</div><div class="small" id="cToday">0 orders</div></div>
  <div class="card"><div class="label">Total Revenue Today</div><div class="stat" id="sIncome">RM 0</div><div class="small" id="incomeProgress">Target RM 100</div></div>
@@ -77,20 +86,25 @@ input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:
  <div class="actions" style="justify-content:flex-end;margin-top:10px"><button id="cancel">Cancel</button><button class="primary" id="saveEdit">Save</button></div>
 </div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL="https://eypdrrawlwqmknxaatuf.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_V6xExYfTLtA2Usnciynqhw_wFc3P4bs";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let cloudUser=null,cloudReady=false,localDirty=false,syncTimer=null,pollTimer=null,lastRemoteSignature="";
 const KEY="novasaki_order_manager_v2",SETTINGS_KEY="novasaki_order_manager_v3_settings";
 let orders=[];try{orders=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){orders=[]}
 let filter="all",editId=null,settings={incomeTarget:100};try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")}}catch(e){}
 const $=id=>document.getElementById(id),today=()=>{let d=new Date();d.setHours(0,0,0,0);return d},addDays=n=>{let d=today();d.setDate(d.getDate()+n);return d};
 const iso=d=>{let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return y+"-"+m+"-"+day};
 const dueKey=value=>{const s=String(value||"").trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;let m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);return m?m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0"):s.slice(0,10)};
-const fmt=m=>{m=Math.round(Number(m)||0);return Math.floor(m/60)+"h "+m%60+"m"},money=n=>"RM "+Number(n||0).toFixed(2),save=()=>localStorage.setItem(KEY,JSON.stringify(orders)),esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+const fmt=m=>{m=Math.round(Number(m)||0);return Math.floor(m/60)+"h "+m%60+"m"},money=n=>"RM "+Number(n||0).toFixed(2),save=()=>{localStorage.setItem(KEY,JSON.stringify(orders));if(cloudReady){localDirty=true;scheduleCloudSync()}},esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
 const normPay=p=>{p=String(p||"").trim();return p==="Lunas"||p==="Paid"?"Paid":p==="Deposit"?"Deposit":"Unpaid"};
 const normOrder=o=>({...o,due:dueKey(o.due),pay:normPay(o.pay),delivery:o.delivery||"",status:o.status||"New"});
 orders=orders.map(normOrder);
 
 function totals(date){const k=iso(date);let mins=0,count=0,income=0,paid=0,paidCount=0;orders.forEach(o=>{if(dueKey(o.due)===k){count++;income+=Number(o.price)||0;if(normPay(o.pay)==="Paid"){paid+=Number(o.price)||0;paidCount++}if(o.status!=="Ready")mins+=Number(o.mins)||0}});return{mins,count,income,paid,paidCount}}
-function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}
+function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));if(cloudReady){localDirty=true;scheduleCloudSync()}}
 function render(){
  orders.forEach(o=>{o.due=dueKey(o.due);o.pay=normPay(o.pay)});
  orders.sort((a,b)=>a.due.localeCompare(b.due)||(a.priority==="Urgent"?-1:1));
@@ -118,6 +132,76 @@ function addOrder(){let name=$("name").value.trim().toUpperCase(),desc=$("desc")
 function openEdit(id){let o=orders.find(x=>String(x.id)===String(id));if(!o)return;editId=id;$("eName").value=o.name;$("eDesc").value=o.desc||"";$("eDue").value=o.due;$("eMins").value=o.mins;$("ePrice").value=o.price||0;$("ePriority").value=o.priority||"Normal";$("ePay").value=normPay(o.pay);$("eDelivery").value=o.delivery||"";$("eStatus").value=o.status||"New";$("eNote").value=o.note||"";$("modal").classList.add("show")}
 function closeEdit(){$("modal").classList.remove("show");editId=null}
 function saveEdit(){let o=orders.find(x=>String(x.id)===String(editId));if(!o)return;o.name=$("eName").value.trim().toUpperCase()||o.name;o.desc=$("eDesc").value.trim().toUpperCase();o.due=$("eDue").value;o.mins=Math.max(1,Number($("eMins").value)||o.mins);o.price=Number($("ePrice").value)||0;o.priority=$("ePriority").value;o.pay=normPay($("ePay").value);o.delivery=$("eDelivery").value;o.status=$("eStatus").value;o.note=$("eNote").value.trim().toUpperCase();save();closeEdit();render()}
+
+function cloudStatus(message){$("cloudStatus").textContent=message}
+function showCloudUser(user){cloudUser=user;$("authPanel").style.display=user?"none":"block";$("signedPanel").style.display=user?"flex":"none";$("signedEmail").textContent=user?user.email:"";if(!user)cloudStatus("Sign in to sync orders across devices.")}
+function scheduleCloudSync(){clearTimeout(syncTimer);syncTimer=setTimeout(()=>pushCloud().catch(e=>cloudStatus("Sync error: "+(e.message||e))),800)}
+function orderSignature(list){return JSON.stringify([...list].sort((a,b)=>String(a.id).localeCompare(String(b.id))))}
+async function pushCloud(){
+ if(!cloudUser||!cloudReady)return;
+ cloudStatus("Syncing to cloud…");
+ const rows=orders.map(o=>({id:String(o.id),user_id:cloudUser.id,order_data:o,updated_at:new Date().toISOString()}));
+ if(rows.length){const {error}=await supabaseClient.from("novasaki_orders").upsert(rows,{onConflict:"id"});if(error)throw error}
+ const ids=rows.map(r=>r.id);
+ let delQuery=supabaseClient.from("novasaki_orders").delete().eq("user_id",cloudUser.id);
+ if(ids.length)delQuery=delQuery.not("id","in","("+ids.map(id=>'"'+id.replace(/"/g,'')+'"').join(",")+")");
+ const {error:delError}=await delQuery;
+ if(delError)throw delError;
+ const {error:settingsError}=await supabaseClient.from("novasaki_settings").upsert({user_id:cloudUser.id,settings,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+ if(settingsError)throw settingsError;
+ localDirty=false;lastRemoteSignature=orderSignature(orders);cloudStatus("Synced ✓ "+new Date().toLocaleTimeString());
+}
+async function pullCloud(initial=false){
+ if(!cloudUser||!cloudReady||localDirty)return;
+ const {data:rows,error}=await supabaseClient.from("novasaki_orders").select("id,order_data").eq("user_id",cloudUser.id);
+ if(error)throw error;
+ const remote=(rows||[]).map(r=>normOrder(r.order_data));
+ const signature=orderSignature(remote);
+ if(initial){
+   const merged=new Map();
+   remote.forEach(o=>merged.set(String(o.id),o));
+   orders.forEach(o=>merged.set(String(o.id),o));
+   orders=[...merged.values()];
+   const {data:srow,error:se}=await supabaseClient.from("novasaki_settings").select("settings").eq("user_id",cloudUser.id).maybeSingle();
+   if(se)throw se;
+   if(srow&&srow.settings)settings={...settings,...srow.settings};
+   saveSettings();save();
+   localDirty=true;
+   await pushCloud();
+   $("incomeTarget").value=settings.incomeTarget??100;
+   render();
+   return;
+ }
+ if(signature!==lastRemoteSignature){
+   orders=remote;localStorage.setItem(KEY,JSON.stringify(orders));lastRemoteSignature=signature;
+   const {data:srow,error:se}=await supabaseClient.from("novasaki_settings").select("settings").eq("user_id",cloudUser.id).maybeSingle();
+   if(se)throw se;
+   if(srow&&srow.settings){settings={...settings,...srow.settings};localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));$("incomeTarget").value=settings.incomeTarget??100}
+   render();
+   cloudStatus("Updated from cloud ✓ "+new Date().toLocaleTimeString());
+ } else cloudStatus("Connected ✓ Last checked "+new Date().toLocaleTimeString());
+}
+async function activateCloud(user){
+ showCloudUser(user);
+ if(!user){cloudReady=false;clearInterval(pollTimer);return}
+ cloudReady=false;cloudStatus("Loading cloud orders…");
+ try{
+  const {data:rows,error}=await supabaseClient.from("novasaki_orders").select("id").eq("user_id",user.id).limit(1);
+  if(error)throw error;
+  cloudReady=true;
+  await pullCloud(true);
+  clearInterval(pollTimer);
+  pollTimer=setInterval(()=>pullCloud(false).catch(e=>cloudStatus("Sync error: "+(e.message||e))),12000);
+ }catch(e){cloudReady=false;cloudStatus("Could not connect: "+(e.message||e));}
+}
+async function signIn(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||!password){alert("Enter your email and password.");return}cloudStatus("Signing in…");const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error){cloudStatus("Sign-in failed: "+error.message);return}await activateCloud(data.user)}
+async function signUp(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6){alert("Enter an email and a password of at least 6 characters.");return}cloudStatus("Creating account…");const {data,error}=await supabaseClient.auth.signUp({email,password});if(error){cloudStatus("Account creation failed: "+error.message);return}if(data.session){await activateCloud(data.user)}else cloudStatus("Account created. Check your email to confirm, then sign in here.")}
+$("signInBtn").onclick=()=>signIn().catch(e=>cloudStatus("Sign-in failed: "+e.message));
+$("signUpBtn").onclick=()=>signUp().catch(e=>cloudStatus("Account creation failed: "+e.message));
+$("signOutBtn").onclick=async()=>{await supabaseClient.auth.signOut();cloudReady=false;showCloudUser(null)};
+$("syncNow").onclick=async()=>{try{if(!cloudUser){alert("Sign in first.");return}if(localDirty)await pushCloud();else await pullCloud(false)}catch(e){cloudStatus("Sync error: "+(e.message||e))}};
+supabaseClient.auth.getSession().then(({data,error})=>{if(error){cloudStatus(error.message);return}if(data.session)activateCloud(data.session.user)}).catch(e=>cloudStatus(e.message));
+
 function backup(){let blob=new Blob([JSON.stringify({version:4,exported:new Date().toISOString(),settings,orders},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Novasaki_Order_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function importFile(file){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result),incoming=Array.isArray(x)?x:x.orders;if(!Array.isArray(incoming))throw 0;if(!confirm("Import will replace existing orders. Continue?"))return;orders=incoming.map(normOrder);if(x.settings&&typeof x.settings==="object"){settings={...settings,...x.settings};saveSettings();$("incomeTarget").value=settings.incomeTarget||0}save();render();alert("Backup imported successfully.")}catch(e){alert("Invalid backup file.")}};r.readAsText(file)}
 $("due").value=iso(today());$("incomeTarget").value=settings.incomeTarget;
