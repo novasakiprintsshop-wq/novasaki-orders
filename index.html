@@ -96,7 +96,7 @@ let cloudUser=null,cloudReady=false,localDirty=false,syncTimer=null,pollTimer=nu
 const KEY="novasaki_order_manager_v2",SETTINGS_KEY="novasaki_order_manager_v3_settings",CUSTOMER_KEY="novasaki_order_customers_v1";
 let orders=[];try{orders=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){}
 let pastCustomers=[];try{pastCustomers=JSON.parse(localStorage.getItem(CUSTOMER_KEY)||"[]")}catch(e){pastCustomers=[]}
-let filter="all",editId=null,settings={incomeTarget:100};try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")}}catch(e){}
+let filter="all",editId=null,settings={incomeTarget:100,capacity:5,buffer:20};try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")}}catch(e){}
 const $=id=>document.getElementById(id),today=()=>{let d=new Date();d.setHours(0,0,0,0);return d},addDays=n=>{let d=today();d.setDate(d.getDate()+n);return d};
 const iso=d=>{let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return y+"-"+m+"-"+day};
 const dueKey=value=>{const s=String(value||"").trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;let m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);return m?m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0"):s.slice(0,10)};
@@ -213,9 +213,9 @@ supabaseClient.auth.getSession().then(({data,error})=>{if(error){cloudStatus(err
 
 function backup(){let blob=new Blob([JSON.stringify({version:4,exported:new Date().toISOString(),settings,orders},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Novasaki_Order_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function importFile(file){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result),incoming=Array.isArray(x)?x:x.orders;if(!Array.isArray(incoming))throw 0;if(!confirm("Import will replace existing orders. Continue?"))return;pendingDeletes.push(...orders.map(o=>String(o.id)));orders=incoming.map(normOrder);if(x.settings&&typeof x.settings==="object"){settings={...settings,...x.settings};saveSettings();$("incomeTarget").value=settings.incomeTarget||0}save();render();alert("Backup imported successfully.")}catch(e){alert("Invalid backup file.")}};r.readAsText(file)}
-$("due").value=iso(today());$("incomeTarget").value=settings.incomeTarget;addOrderLine();
+$("due").value=iso(today());$("incomeTarget").value=settings.incomeTarget;$("capacity").value=settings.capacity??5;$("buffer").value=settings.buffer??20;addOrderLine();
 $("incomeTarget").oninput=()=>{settings.incomeTarget=Math.max(0,Number($("incomeTarget").value)||0);saveSettings();render()};
-$("add").onclick=addOrder;$("capacity").oninput=render;$("buffer").oninput=render;$("clear").onclick=()=>{if(confirm("Delete ALL orders?")){pendingDeletes.push(...orders.map(o=>String(o.id)));orders=[];save();render()}};
+$("add").onclick=addOrder;$("capacity").oninput=()=>{settings.capacity=Math.max(.5,Math.min(24,Number($("capacity").value)||5));saveSettings();render()};$("buffer").oninput=()=>{settings.buffer=Math.max(0,Math.min(90,Number($("buffer").value)||0));saveSettings();render()};$("clear").onclick=()=>{if(confirm("Delete ALL orders?")){pendingDeletes.push(...orders.map(o=>String(o.id)));orders=[];save();render()}};
 ["name"].forEach(id=>$(id).addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase()}));document.addEventListener("input",e=>{if(e.target.classList&&e.target.classList.contains("lineDesc"))e.target.value=e.target.value.toUpperCase()});$("name").addEventListener("change",()=>rememberCustomer($("name").value));$("addLine").onclick=()=>addOrderLine();
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;render()});
 $("backupBtn").onclick=backup;$("backup2").onclick=backup;$("importBtn").onclick=()=>$("fileInput").click();$("import2").onclick=()=>$("fileInput").click();$("fileInput").onchange=e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value=""};
