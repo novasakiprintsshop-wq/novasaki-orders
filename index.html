@@ -91,7 +91,7 @@ input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:
 const SUPABASE_URL="https://eypdrrawlwqmknxaatuf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_V6xExYfTLtA2Usnciynqhw_wFc3P4bs";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-let cloudUser=null,cloudReady=false,localDirty=false,syncTimer=null,pollTimer=null,lastRemoteSignature="";
+let cloudUser=null,cloudReady=false,localDirty=false,syncTimer=null,pollTimer=null,lastRemoteSignature="",pendingDeletes=[];
 const KEY="novasaki_order_manager_v2",SETTINGS_KEY="novasaki_order_manager_v3_settings";
 let orders=[];try{orders=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){orders=[]}
 let filter="all",editId=null,settings={incomeTarget:100};try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")}}catch(e){}
@@ -124,7 +124,7 @@ function render(){
  const ready=orders.filter(o=>o.status==="Ready"&&normPay(o.pay)!=="Paid");
  $("readyUnpaid").innerHTML=ready.length?ready.map(o=>'<div class="notice" style="margin-top:7px">👤 <b>'+esc(o.name)+'</b> • '+esc(o.desc||"Order")+' • RM '+Number(o.price||0).toFixed(2)+' • '+esc(normPay(o.pay))+' • '+esc(o.delivery||"No delivery")+'</div>').join(""):'<div class="empty">No ready unpaid orders.</div>';
  document.querySelectorAll(".status").forEach(s=>s.onchange=()=>{let o=orders.find(x=>String(x.id)===s.dataset.id);if(o){o.status=s.value;save();render()}});
- document.querySelectorAll(".del").forEach(b=>b.onclick=()=>{if(confirm("Delete this order?")){orders=orders.filter(x=>String(x.id)!==b.dataset.id);save();render()}});
+ document.querySelectorAll(".del").forEach(b=>b.onclick=()=>{if(confirm("Delete this order?")){pendingDeletes.push(String(b.dataset.id));orders=orders.filter(x=>String(x.id)!==b.dataset.id);save();render()}});
  document.querySelectorAll(".edit").forEach(b=>b.onclick=()=>openEdit(b.dataset.id));
 }
 function clearAdd(){$("name").value="";$("desc").value="";$("mins").value="";$("price").value="";$("due").value=iso(today());$("priority").value="Normal";$("pay").value="Unpaid";$("delivery").value=""}
@@ -135,63 +135,67 @@ function saveEdit(){let o=orders.find(x=>String(x.id)===String(editId));if(!o)re
 
 function cloudStatus(message){$("cloudStatus").textContent=message}
 function showCloudUser(user){cloudUser=user;$("authPanel").style.display=user?"none":"block";$("signedPanel").style.display=user?"flex":"none";$("signedEmail").textContent=user?user.email:"";if(!user)cloudStatus("Sign in to sync orders across devices.")}
-function scheduleCloudSync(){clearTimeout(syncTimer);syncTimer=setTimeout(()=>pushCloud().catch(e=>cloudStatus("Sync error: "+(e.message||e))),800)}
+function scheduleCloudSync(){clearTimeout(syncTimer);syncTimer=setTimeout(()=>pushCloud().catch(e=>cloudStatus("Sync error: "+(e.message||e))),1000)}
 function orderSignature(list){return JSON.stringify([...list].sort((a,b)=>String(a.id).localeCompare(String(b.id))))}
 async function pushCloud(){
  if(!cloudUser||!cloudReady)return;
- cloudStatus("Syncing to cloud…");
+ cloudStatus("Saving changes to cloud…");
+ // Apply only explicitly requested deletions. Never infer cloud deletions from a possibly stale local list.
+ const deletes=[...new Set(pendingDeletes)];
+ if(deletes.length){
+  const {error}=await supabaseClient.from("novasaki_orders").delete().eq("user_id",cloudUser.id).in("id",deletes);
+  if(error)throw error;
+ }
  const rows=orders.map(o=>({id:String(o.id),user_id:cloudUser.id,order_data:o,updated_at:new Date().toISOString()}));
- if(rows.length){const {error}=await supabaseClient.from("novasaki_orders").upsert(rows,{onConflict:"id"});if(error)throw error}
- const ids=rows.map(r=>r.id);
- let delQuery=supabaseClient.from("novasaki_orders").delete().eq("user_id",cloudUser.id);
- if(ids.length)delQuery=delQuery.not("id","in","("+ids.map(id=>'"'+id.replace(/"/g,'')+'"').join(",")+")");
- const {error:delError}=await delQuery;
- if(delError)throw delError;
+ if(rows.length){
+  const {error}=await supabaseClient.from("novasaki_orders").upsert(rows,{onConflict:"id"});
+  if(error)throw error;
+ }
  const {error:settingsError}=await supabaseClient.from("novasaki_settings").upsert({user_id:cloudUser.id,settings,updated_at:new Date().toISOString()},{onConflict:"user_id"});
  if(settingsError)throw settingsError;
- localDirty=false;lastRemoteSignature=orderSignature(orders);cloudStatus("Synced ✓ "+new Date().toLocaleTimeString());
+ pendingDeletes=pendingDeletes.filter(id=>!deletes.includes(id));
+ localDirty=false;
+ lastRemoteSignature=orderSignature(orders);
+ cloudStatus("Synced ✓ "+new Date().toLocaleTimeString());
 }
 async function pullCloud(initial=false){
  if(!cloudUser||!cloudReady||localDirty)return;
+ cloudStatus("Checking cloud for latest orders…");
  const {data:rows,error}=await supabaseClient.from("novasaki_orders").select("id,order_data").eq("user_id",cloudUser.id);
  if(error)throw error;
  const remote=(rows||[]).map(r=>normOrder(r.order_data));
  const signature=orderSignature(remote);
- if(initial){
-   const merged=new Map();
-   remote.forEach(o=>merged.set(String(o.id),o));
-   orders.forEach(o=>merged.set(String(o.id),o));
-   orders=[...merged.values()];
-   const {data:srow,error:se}=await supabaseClient.from("novasaki_settings").select("settings").eq("user_id",cloudUser.id).maybeSingle();
-   if(se)throw se;
-   if(srow&&srow.settings)settings={...settings,...srow.settings};
-   saveSettings();save();
-   localDirty=true;
-   await pushCloud();
-   $("incomeTarget").value=settings.incomeTarget??100;
-   render();
-   return;
+ const {data:srow,error:se}=await supabaseClient.from("novasaki_settings").select("settings").eq("user_id",cloudUser.id).maybeSingle();
+ if(se)throw se;
+
+ // Cloud is authoritative when it contains orders. Do not merge stale local copies into it.
+ // If cloud is empty but local data exists, preserve local data and require an explicit upload.
+ if(remote.length===0&&orders.length>0){
+  lastRemoteSignature=signature;
+  if(srow&&srow.settings){settings={...settings,...srow.settings};localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));$("incomeTarget").value=settings.incomeTarget??100}
+  cloudStatus("Cloud has no orders. Local data preserved — press Sync now to upload it.");
+  return;
  }
- if(signature!==lastRemoteSignature){
-   orders=remote;localStorage.setItem(KEY,JSON.stringify(orders));lastRemoteSignature=signature;
-   const {data:srow,error:se}=await supabaseClient.from("novasaki_settings").select("settings").eq("user_id",cloudUser.id).maybeSingle();
-   if(se)throw se;
-   if(srow&&srow.settings){settings={...settings,...srow.settings};localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));$("incomeTarget").value=settings.incomeTarget??100}
-   render();
-   cloudStatus("Updated from cloud ✓ "+new Date().toLocaleTimeString());
+ if(initial||signature!==lastRemoteSignature){
+  orders=remote;
+  localStorage.setItem(KEY,JSON.stringify(orders));
+  lastRemoteSignature=signature;
+  if(srow&&srow.settings){settings={...settings,...srow.settings};localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));$("incomeTarget").value=settings.incomeTarget??100}
+  render();
+  cloudStatus("Updated from cloud ✓ "+new Date().toLocaleTimeString());
  } else cloudStatus("Connected ✓ Last checked "+new Date().toLocaleTimeString());
 }
 async function activateCloud(user){
  showCloudUser(user);
  if(!user){cloudReady=false;clearInterval(pollTimer);return}
- cloudReady=false;cloudStatus("Loading cloud orders…");
+ cloudReady=false;clearInterval(pollTimer);cloudStatus("Loading cloud orders…");
  try{
-  const {data:rows,error}=await supabaseClient.from("novasaki_orders").select("id").eq("user_id",user.id).limit(1);
+  const {data:rows,error}=await supabaseClient.from("novasaki_orders").select("id,order_data").eq("user_id",user.id);
   if(error)throw error;
   cloudReady=true;
   await pullCloud(true);
   clearInterval(pollTimer);
-  pollTimer=setInterval(()=>pullCloud(false).catch(e=>cloudStatus("Sync error: "+(e.message||e))),12000);
+  pollTimer=setInterval(()=>pullCloud(false).catch(e=>cloudStatus("Sync error: "+(e.message||e))),15000);
  }catch(e){cloudReady=false;cloudStatus("Could not connect: "+(e.message||e));}
 }
 async function signIn(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||!password){alert("Enter your email and password.");return}cloudStatus("Signing in…");const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error){cloudStatus("Sign-in failed: "+error.message);return}await activateCloud(data.user)}
@@ -199,14 +203,14 @@ async function signUp(){const email=$("cloudEmail").value.trim(),password=$("clo
 $("signInBtn").onclick=()=>signIn().catch(e=>cloudStatus("Sign-in failed: "+e.message));
 $("signUpBtn").onclick=()=>signUp().catch(e=>cloudStatus("Account creation failed: "+e.message));
 $("signOutBtn").onclick=async()=>{await supabaseClient.auth.signOut();cloudReady=false;showCloudUser(null)};
-$("syncNow").onclick=async()=>{try{if(!cloudUser){alert("Sign in first.");return}if(localDirty)await pushCloud();else await pullCloud(false)}catch(e){cloudStatus("Sync error: "+(e.message||e))}};
+$("syncNow").onclick=async()=>{try{if(!cloudUser){alert("Sign in first.");return}if(localDirty||pendingDeletes.length){await pushCloud();return}const {data,error}=await supabaseClient.from("novasaki_orders").select("id").eq("user_id",cloudUser.id).limit(1);if(error)throw error;if((!data||data.length===0)&&orders.length){if(confirm("Cloud currently has no orders. Upload the orders currently saved on this device?")){localDirty=true;await pushCloud()}else cloudStatus("Sync cancelled. Local data preserved.");return}await pullCloud(false)}catch(e){cloudStatus("Sync error: "+(e.message||e))}};
 supabaseClient.auth.getSession().then(({data,error})=>{if(error){cloudStatus(error.message);return}if(data.session)activateCloud(data.session.user)}).catch(e=>cloudStatus(e.message));
 
 function backup(){let blob=new Blob([JSON.stringify({version:4,exported:new Date().toISOString(),settings,orders},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Novasaki_Order_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function importFile(file){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result),incoming=Array.isArray(x)?x:x.orders;if(!Array.isArray(incoming))throw 0;if(!confirm("Import will replace existing orders. Continue?"))return;orders=incoming.map(normOrder);if(x.settings&&typeof x.settings==="object"){settings={...settings,...x.settings};saveSettings();$("incomeTarget").value=settings.incomeTarget||0}save();render();alert("Backup imported successfully.")}catch(e){alert("Invalid backup file.")}};r.readAsText(file)}
+function importFile(file){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result),incoming=Array.isArray(x)?x:x.orders;if(!Array.isArray(incoming))throw 0;if(!confirm("Import will replace existing orders. Continue?"))return;pendingDeletes.push(...orders.map(o=>String(o.id)));orders=incoming.map(normOrder);if(x.settings&&typeof x.settings==="object"){settings={...settings,...x.settings};saveSettings();$("incomeTarget").value=settings.incomeTarget||0}save();render();alert("Backup imported successfully.")}catch(e){alert("Invalid backup file.")}};r.readAsText(file)}
 $("due").value=iso(today());$("incomeTarget").value=settings.incomeTarget;
 $("incomeTarget").oninput=()=>{settings.incomeTarget=Math.max(0,Number($("incomeTarget").value)||0);saveSettings();render()};
-$("add").onclick=addOrder;$("capacity").oninput=render;$("buffer").oninput=render;$("clear").onclick=()=>{if(confirm("Delete ALL orders?")){orders=[];save();render()}};
+$("add").onclick=addOrder;$("capacity").oninput=render;$("buffer").oninput=render;$("clear").onclick=()=>{if(confirm("Delete ALL orders?")){pendingDeletes.push(...orders.map(o=>String(o.id)));orders=[];save();render()}};
 ["name","desc"].forEach(id=>$(id).addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase()}));
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;render()});
 $("backupBtn").onclick=backup;$("backup2").onclick=backup;$("importBtn").onclick=()=>$("fileInput").click();$("import2").onclick=()=>$("fileInput").click();$("fileInput").onchange=e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value=""};
