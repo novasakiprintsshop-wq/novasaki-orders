@@ -1,4 +1,4 @@
-const CACHE = "novasaki-orders-v12";
+const CACHE = "novasaki-orders-v13";
 const ASSETS = ["./","./index.html","./manifest.webmanifest","./novasaki-logo.jpg","./novasaki-logo.png","./icon-novasaki.jpg"];
 
 self.addEventListener("install", event => {
