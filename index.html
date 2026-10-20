@@ -7,14 +7,14 @@
 :root{--bg:#f7f4f6;--card:#fff;--text:#29252a;--muted:#77727a;--line:#e7e1e7;--accent:#8f647f;--soft:#f0e6ef;--ok:#4d8663;--warn:#b27a2a;--bad:#b44b4b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
 .app{max-width:900px;margin:auto;padding:14px;padding-bottom:80px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.brand{display:flex;align-items:center;gap:10px}.logo{width:48px;height:48px;border-radius:12px}.top h1{font-size:22px;margin:0}.sub{font-size:12px;color:var(--muted)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}.grid4{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.stat{font-size:23px;font-weight:800}.label{font-size:11px;color:var(--muted);text-transform:uppercase}.form{display:grid;grid-template-columns:1.3fr 1fr 1fr .7fr;gap:8px}.form2{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-top:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}.grid4{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.stat{font-size:23px;font-weight:800}.label{font-size:11px;color:var(--muted);text-transform:uppercase}.form{display:grid;grid-template-columns:1.3fr 1fr 1fr .7fr;gap:8px}.form2{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-top:8px}.orderLine{display:grid;grid-template-columns:1.5fr .65fr .75fr auto auto;gap:7px;align-items:center;margin-top:8px;padding:8px;background:#faf7fa;border:1px solid var(--line);border-radius:12px}.orderLine label{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;white-space:nowrap}.orderLine input[type=checkbox]{width:20px;min-height:20px;accent-color:var(--ok)}.removeLine{min-width:42px;padding:6px}
 input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);padding:9px 10px;font-size:16px}button{min-height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);padding:8px 13px;font-weight:700}button.primary{background:var(--accent);border-color:var(--accent);color:#fff}button.soft{background:var(--soft)}button.danger{color:var(--bad)}
 .days{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.day{padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff}.day.today{border:2px solid var(--accent)}.bar{height:8px;background:#eee9ee;border-radius:8px;overflow:hidden;margin:8px 0}.fill{height:100%;background:var(--accent)}
 .tabs{display:flex;gap:6px;overflow:auto;padding-bottom:3px}.tabs button{white-space:nowrap;min-height:40px}.tabs button.active{background:var(--soft);border-color:var(--accent)}
 .order{display:grid;grid-template-columns:1.5fr .7fr .8fr 1fr auto;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.order:last-child{border-bottom:0}.badge{display:inline-block;border-radius:20px;background:var(--soft);padding:4px 8px;font-size:11px;font-weight:800}.small{font-size:12px;color:var(--muted)}.empty{text-align:center;color:var(--muted);padding:24px}
 .actions{display:flex;gap:7px;flex-wrap:wrap}.sectionTitle{font-size:17px;font-weight:800}.row{display:flex;justify-content:space-between;align-items:center;gap:8px}.notice{padding:10px;border-radius:10px;font-weight:700;background:var(--soft)}
 .modal{display:none;position:fixed;inset:0;background:#0008;z-index:20;padding:14px;align-items:flex-end;justify-content:center}.modal.show{display:flex}.sheet{width:min(700px,100%);background:#fff;border-radius:18px 18px 10px 10px;padding:16px;max-height:92vh;overflow:auto}
-@media(max-width:650px){.app{padding:10px}.grid4{grid-template-columns:repeat(2,1fr)}.days{grid-template-columns:repeat(2,1fr)}.form,.form2{grid-template-columns:1fr 1fr}.order{grid-template-columns:1fr 1fr}.order .wide{grid-column:1/3}.order .actions{grid-column:1/3}.top{align-items:flex-start}.top .actions{justify-content:flex-end}}
+@media(max-width:650px){.app{padding:10px}.grid4{grid-template-columns:repeat(2,1fr)}.days{grid-template-columns:repeat(2,1fr)}.form,.form2{grid-template-columns:1fr 1fr}.orderLine{grid-template-columns:1fr 1fr}.orderLine .lineDesc{grid-column:1/3}.order{grid-template-columns:1fr 1fr}.order .wide{grid-column:1/3}.order .actions{grid-column:1/3}.top{align-items:flex-start}.top .actions{justify-content:flex-end}}
 @media(max-width:420px){.form,.form2{grid-template-columns:1fr}.days{grid-template-columns:1fr}.top{flex-direction:column}.top .actions{width:100%}.top .actions button{flex:1}}
 </style>
 <link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#111827"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Novasaki Orders"><link rel="icon" href="./novasaki-logo.jpg">
@@ -37,7 +37,6 @@ input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:
 <section class="grid4">
  <div class="card"><div class="label" id="todayLabel">Today</div><div class="stat" id="sToday">0h</div><div class="small" id="cToday">0 orders</div></div>
  <div class="card"><div class="label">Total Revenue Today</div><div class="stat" id="sIncome">RM 0</div><div class="small" id="incomeProgress">Target RM 100</div></div>
- <div class="card"><div class="label">Total Paid Today</div><div class="stat" id="sPaid">RM 0</div><div class="small" id="paidCount">0 paid orders</div></div>
  <div class="card"><div class="label" id="tomorrowLabel">Tomorrow</div><div class="stat" id="sTomorrow">0h</div><div class="small" id="cTomorrow">0 orders</div><div class="small" id="iTomorrow" style="margin-top:3px">💰 RM 0</div></div>
  <div class="card"><div class="label">Pending</div><div class="stat" id="sPending">0</div></div>
  <div class="card"><div class="label">Overdue</div><div class="stat" id="sOverdue">0</div></div>
@@ -46,15 +45,17 @@ input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:
 <section class="card">
  <div class="row"><div><div class="sectionTitle">➕ New Order</div><div class="sub">Enter your own estimated working time.</div></div></div>
  <div class="form" style="margin-top:10px">
-  <input id="name" placeholder="CUSTOMER NAME"><input id="desc" placeholder="ORDER DESCRIPTION"><input id="due" type="date"><input id="mins" type="number" min="1" placeholder="MINUTES">
+  <input id="name" list="customerSuggestions" placeholder="CUSTOMER NAME" autocomplete="off"><datalist id="customerSuggestions"></datalist>
+  <input id="due" type="date">
  </div>
+ <div style="margin-top:12px"><div class="row"><b>Order items</b><span class="small">Add one or more items; each item has its own price and Ready tick.</span></div><div id="orderLines"></div><div class="actions" style="margin-top:8px"><button id="addLine" class="soft">＋ Add another order</button></div></div>
  <div class="form2">
   <select id="priority"><option value="Normal">🟢 Normal</option><option value="High">🟠 High</option><option value="Urgent">🔴 Urgent</option></select>
   <select id="pay"><option>Unpaid</option><option>Deposit</option><option>Paid</option></select>
-  <input id="price" type="number" min="0" step=".01" placeholder="PRICE RM">
-  <select id="delivery"><option value="">DELIVERY</option><option>Pickup</option><option>Box Express</option><option>Grab</option><option>J&T</option></select>
+  <select id="delivery"><option value="">DELIVERY</option><option>Pickup</option><option>Box Express</option><option>Grab</option><option>J&T</option><option>COD</option></select>
+  <div></div>
  </div>
- <div class="actions" style="justify-content:flex-end;margin-top:8px"><button class="primary" id="add">Add Order</button></div>
+ <div class="actions" style="justify-content:flex-end;margin-top:8px"><button class="primary" id="add">Add Order(s)</button></div>
 </section>
 
 <section class="card"><div class="sectionTitle">⚙️ Daily Capacity</div><div class="sub">This is your comfortable limit — not a maximum to force yourself.</div>
@@ -81,7 +82,7 @@ input,select,button{font:inherit}input,select{width:100%;min-height:44px;border:
 <div class="modal" id="modal"><div class="sheet">
  <div class="row"><div class="sectionTitle">✏️ Edit Order</div><button id="close">×</button></div>
  <div class="form" style="margin-top:12px"><input id="eName"><input id="eDesc"><input id="eDue" type="date"><input id="eMins" type="number" min="1"></div>
- <div class="form2"><select id="ePriority"><option>Normal</option><option>High</option><option>Urgent</option></select><select id="ePay"><option>Unpaid</option><option>Deposit</option><option>Paid</option></select><input id="ePrice" type="number" min="0" step=".01"><select id="eDelivery"><option value="">Delivery</option><option>Pickup</option><option>Box Express</option><option>Grab</option><option>J&T</option></select></div>
+ <div class="form2"><select id="ePriority"><option>Normal</option><option>High</option><option>Urgent</option></select><select id="ePay"><option>Unpaid</option><option>Deposit</option><option>Paid</option></select><input id="ePrice" type="number" min="0" step=".01"><select id="eDelivery"><option value="">Delivery</option><option>Pickup</option><option>Box Express</option><option>Grab</option><option>J&T</option><option>COD</option></select></div>
  <div class="form2"><select id="eStatus"><option>New</option><option>Design</option><option>Approved</option><option>Print</option><option>Cut</option><option>Assemble</option><option>Ready</option></select><input id="eNote" placeholder="NOTE"><div></div><div></div></div>
  <div class="actions" style="justify-content:flex-end;margin-top:10px"><button id="cancel">Cancel</button><button class="primary" id="saveEdit">Save</button></div>
 </div></div>
@@ -92,8 +93,9 @@ const SUPABASE_URL="https://eypdrrawlwqmknxaatuf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_V6xExYfTLtA2Usnciynqhw_wFc3P4bs";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let cloudUser=null,cloudReady=false,localDirty=false,syncTimer=null,pollTimer=null,lastRemoteSignature="",pendingDeletes=[];
-const KEY="novasaki_order_manager_v2",SETTINGS_KEY="novasaki_order_manager_v3_settings";
-let orders=[];try{orders=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){orders=[]}
+const KEY="novasaki_order_manager_v2",SETTINGS_KEY="novasaki_order_manager_v3_settings",CUSTOMER_KEY="novasaki_order_customers_v1";
+let orders=[];try{orders=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){}
+let pastCustomers=[];try{pastCustomers=JSON.parse(localStorage.getItem(CUSTOMER_KEY)||"[]")}catch(e){pastCustomers=[]}
 let filter="all",editId=null,settings={incomeTarget:100};try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")}}catch(e){}
 const $=id=>document.getElementById(id),today=()=>{let d=new Date();d.setHours(0,0,0,0);return d},addDays=n=>{let d=today();d.setDate(d.getDate()+n);return d};
 const iso=d=>{let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return y+"-"+m+"-"+day};
@@ -103,9 +105,10 @@ const normPay=p=>{p=String(p||"").trim();return p==="Lunas"||p==="Paid"?"Paid":p
 const normOrder=o=>({...o,due:dueKey(o.due),pay:normPay(o.pay),delivery:o.delivery||"",status:o.status||"New"});
 orders=orders.map(normOrder);
 
-function totals(date){const k=iso(date);let mins=0,count=0,income=0,paid=0,paidCount=0;orders.forEach(o=>{if(dueKey(o.due)===k){count++;income+=Number(o.price)||0;if(normPay(o.pay)==="Paid"){paid+=Number(o.price)||0;paidCount++}if(o.status!=="Ready")mins+=Number(o.mins)||0}});return{mins,count,income,paid,paidCount}}
+function totals(date){const k=iso(date);let mins=0,count=0,income=0;orders.forEach(o=>{if(dueKey(o.due)===k){count++;income+=Number(o.price)||0;if(o.status!=="Ready")mins+=Number(o.mins)||0}});return{mins,count,income}}
 function saveSettings(){localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));if(cloudReady){localDirty=true;scheduleCloudSync()}}
 function render(){
+ renderCustomerSuggestions();
  orders.forEach(o=>{o.due=dueKey(o.due);o.pay=normPay(o.pay)});
  orders.sort((a,b)=>a.due.localeCompare(b.due)||(a.priority==="Urgent"?-1:1));
  let cap=Math.max(.5,Number($("capacity").value)||5)*60,usable=cap*(1-Math.min(90,Math.max(0,Number($("buffer").value)||0))/100);
@@ -113,7 +116,6 @@ function render(){
  $("todayLabel").textContent="Today ("+td.toLocaleDateString("en-MY",{day:"2-digit",month:"2-digit"})+")";$("tomorrowLabel").textContent="Tomorrow ("+tmD.toLocaleDateString("en-MY",{day:"2-digit",month:"2-digit"})+")";
  $("sToday").textContent=fmt(t.mins);$("cToday").textContent=t.count+" orders";$("sTomorrow").textContent=fmt(tm.mins);$("cTomorrow").textContent=tm.count+" orders";$("iTomorrow").textContent="💰 "+money(tm.income).replace(".00","");
  $("sIncome").textContent=money(t.income).replace(".00","");$("incomeProgress").textContent="Target "+money(target).replace(".00","");
- $("sPaid").textContent=money(t.paid).replace(".00","");$("paidCount").textContent=t.paidCount+" paid orders";
  $("incomeFill").style.width=pct+"%";$("incomeSub").textContent=target<=0?"No target set.":remaining>0?"Remaining target: "+money(remaining):"🎉 Daily target reached! Extra "+money(t.income-target);
  $("incomeMsg").textContent=target<=0?"💰 No target":t.income>=target?"🎉 Target reached":"💰 "+money(t.income)+" / "+money(target);
  $("sPending").textContent=orders.filter(o=>o.status!=="Ready").length;$("sOverdue").textContent=orders.filter(o=>dueKey(o.due)<iso(td)&&o.status!=="Ready").length;
@@ -127,8 +129,11 @@ function render(){
  document.querySelectorAll(".del").forEach(b=>b.onclick=()=>{if(confirm("Delete this order?")){pendingDeletes.push(String(b.dataset.id));orders=orders.filter(x=>String(x.id)!==b.dataset.id);save();render()}});
  document.querySelectorAll(".edit").forEach(b=>b.onclick=()=>openEdit(b.dataset.id));
 }
-function clearAdd(){$("name").value="";$("desc").value="";$("mins").value="";$("price").value="";$("due").value=iso(today());$("priority").value="Normal";$("pay").value="Unpaid";$("delivery").value=""}
-function addOrder(){let name=$("name").value.trim().toUpperCase(),desc=$("desc").value.trim().toUpperCase(),due=$("due").value,mins=Number($("mins").value);if(!name||!due||mins<1){alert("Please enter customer name, due date and working time.");return}orders.push({id:Date.now()+Math.random(),name,desc,due,mins,price:Number($("price").value)||0,priority:$("priority").value,pay:normPay($("pay").value),delivery:$("delivery").value,status:"New",note:""});save();clearAdd();render()}
+function rememberCustomer(name){name=String(name||"").trim().toUpperCase();if(!name)return;pastCustomers=[name,...pastCustomers.filter(n=>String(n).toUpperCase()!==name)].slice(0,200);localStorage.setItem(CUSTOMER_KEY,JSON.stringify(pastCustomers))}
+function renderCustomerSuggestions(){const names=[...pastCustomers,...orders.map(o=>o.name||"")].map(n=>String(n).trim().toUpperCase()).filter(Boolean);const unique=[...new Set(names)];$("customerSuggestions").innerHTML=unique.map(n=>'<option value="'+esc(n)+'"></option>').join("")}
+function addOrderLine(desc="",mins="",price="",ready=false){const row=document.createElement("div");row.className="orderLine";row.innerHTML='<input class="lineDesc" placeholder="ORDER DESCRIPTION" value="'+esc(desc)+'"><input class="lineMins" type="number" min="1" placeholder="MINUTES" value="'+esc(mins)+'"><input class="linePrice" type="number" min="0" step=".01" placeholder="PRICE RM" value="'+esc(price)+'"><label><input class="lineReady" type="checkbox" '+(ready?"checked":"")+'> Ready</label><button type="button" class="removeLine danger" aria-label="Remove item">×</button>';row.querySelector(".removeLine").onclick=()=>{if($("orderLines").children.length>1)row.remove();else{row.querySelector(".lineDesc").value="";row.querySelector(".lineMins").value="";row.querySelector(".linePrice").value="";row.querySelector(".lineReady").checked=false}};$("orderLines").appendChild(row)}
+function clearAdd(){$("name").value="";$("orderLines").innerHTML="";addOrderLine();$("due").value=iso(today());$("priority").value="Normal";$("pay").value="Unpaid";$("delivery").value=""}
+function addOrder(){let name=$("name").value.trim().toUpperCase(),due=$("due").value,lines=[...document.querySelectorAll(".orderLine")].map(row=>({desc:row.querySelector(".lineDesc").value.trim().toUpperCase(),mins:Number(row.querySelector(".lineMins").value),price:Number(row.querySelector(".linePrice").value)||0,ready:row.querySelector(".lineReady").checked})).filter(x=>x.desc||x.mins||x.price);if(!name||!due||!lines.length){alert("Please enter customer name, due date and at least one order item.");return}if(lines.some(x=>!x.desc||x.mins<1)){alert("For each order item, enter its description and working minutes.");return}rememberCustomer(name);lines.forEach((line,i)=>orders.push({id:Date.now()+Math.random()+i,name,desc:line.desc,due,mins:line.mins,price:line.price,priority:$("priority").value,pay:normPay($("pay").value),delivery:$("delivery").value,status:line.ready?"Ready":"New",note:""}));save();clearAdd();render()}
 function openEdit(id){let o=orders.find(x=>String(x.id)===String(id));if(!o)return;editId=id;$("eName").value=o.name;$("eDesc").value=o.desc||"";$("eDue").value=o.due;$("eMins").value=o.mins;$("ePrice").value=o.price||0;$("ePriority").value=o.priority||"Normal";$("ePay").value=normPay(o.pay);$("eDelivery").value=o.delivery||"";$("eStatus").value=o.status||"New";$("eNote").value=o.note||"";$("modal").classList.add("show")}
 function closeEdit(){$("modal").classList.remove("show");editId=null}
 function saveEdit(){let o=orders.find(x=>String(x.id)===String(editId));if(!o)return;o.name=$("eName").value.trim().toUpperCase()||o.name;o.desc=$("eDesc").value.trim().toUpperCase();o.due=$("eDue").value;o.mins=Math.max(1,Number($("eMins").value)||o.mins);o.price=Number($("ePrice").value)||0;o.priority=$("ePriority").value;o.pay=normPay($("ePay").value);o.delivery=$("eDelivery").value;o.status=$("eStatus").value;o.note=$("eNote").value.trim().toUpperCase();save();closeEdit();render()}
@@ -208,10 +213,10 @@ supabaseClient.auth.getSession().then(({data,error})=>{if(error){cloudStatus(err
 
 function backup(){let blob=new Blob([JSON.stringify({version:4,exported:new Date().toISOString(),settings,orders},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Novasaki_Order_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function importFile(file){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result),incoming=Array.isArray(x)?x:x.orders;if(!Array.isArray(incoming))throw 0;if(!confirm("Import will replace existing orders. Continue?"))return;pendingDeletes.push(...orders.map(o=>String(o.id)));orders=incoming.map(normOrder);if(x.settings&&typeof x.settings==="object"){settings={...settings,...x.settings};saveSettings();$("incomeTarget").value=settings.incomeTarget||0}save();render();alert("Backup imported successfully.")}catch(e){alert("Invalid backup file.")}};r.readAsText(file)}
-$("due").value=iso(today());$("incomeTarget").value=settings.incomeTarget;
+$("due").value=iso(today());$("incomeTarget").value=settings.incomeTarget;addOrderLine();
 $("incomeTarget").oninput=()=>{settings.incomeTarget=Math.max(0,Number($("incomeTarget").value)||0);saveSettings();render()};
 $("add").onclick=addOrder;$("capacity").oninput=render;$("buffer").oninput=render;$("clear").onclick=()=>{if(confirm("Delete ALL orders?")){pendingDeletes.push(...orders.map(o=>String(o.id)));orders=[];save();render()}};
-["name","desc"].forEach(id=>$(id).addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase()}));
+["name"].forEach(id=>$(id).addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase()}));document.addEventListener("input",e=>{if(e.target.classList&&e.target.classList.contains("lineDesc"))e.target.value=e.target.value.toUpperCase()});$("name").addEventListener("change",()=>rememberCustomer($("name").value));$("addLine").onclick=()=>addOrderLine();
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;render()});
 $("backupBtn").onclick=backup;$("backup2").onclick=backup;$("importBtn").onclick=()=>$("fileInput").click();$("import2").onclick=()=>$("fileInput").click();$("fileInput").onchange=e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value=""};
 $("close").onclick=closeEdit;$("cancel").onclick=closeEdit;$("saveEdit").onclick=saveEdit;
