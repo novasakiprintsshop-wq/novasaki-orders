@@ -177,7 +177,7 @@ async function pullCloud(initial=false){
  // If cloud is empty but local data exists, preserve local data and require an explicit upload.
  if(remote.length===0&&orders.length>0){
   lastRemoteSignature=signature;
-  if(srow&&srow.settings){settings={...settings,...srow.settings};localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));$("incomeTarget").value=settings.incomeTarget??100}
+  if(srow&&srow.settings){settings={...settings,...srow.settings};localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));$("incomeTarget").value=settings.incomeTarget??100;$("capacity").value=settings.capacity??5;$("buffer").value=settings.buffer??20}
   cloudStatus("Cloud has no orders. Local data preserved — press Sync now to upload it.");
   return;
  }
