@@ -71,6 +71,21 @@ function render(){
 function openForm(data={}){$('formPanel').classList.remove('hidden');$('formTitle').textContent=data.id?'Edit rekod':'Rekod reagent';$('recordId').value=data.id||'';$('barcodeValue').value=data.barcode||'';$('name').value=data.name||'';$('lot').value=data.lot||'';$('smn').value=data.smn||'';$('expiry').value=data.expiry||'';$('qty').value=data.qty??'';$('location').value=data.location||'';$('notes').value=data.notes||'';$('formPanel').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('name').focus(),150)}
 function editRecord(id){const r=records.find(x=>x.id===id);if(r)openForm(r)}
 function deleteRecord(id){if(!confirm('Padam rekod lot ini?'))return;records=records.filter(r=>r.id!==id);persist()}
+function parseGS1(raw){
+ const s=String(raw||'').trim();const out={barcode:s};
+ const tokens=[...s.matchAll(/\\((01|10|17|240|422)\\)([^()\\x1D]*)/g)];
+ if(tokens.length){
+  for(const m of tokens){const ai=m[1],v=m[2].trim();if(ai==='10')out.lot=v;if(ai==='17'&&/^\\d{6}$/.test(v))out.expiry='20'+v.slice(0,2)+'-'+v.slice(2,4)+'-'+v.slice(4,6);if(ai==='240')out.smn=v;}
+  return out;
+ }
+ // GS1 DataMatrix may be returned with ASCII group separators instead of parentheses.
+ const clean=s.replace(/[\\x1D\\x1E\\x04]/g,'');
+ const gtin=clean.match(/^01(\\d{14})/);if(gtin)out.gtin=gtin[1];
+ const exp=clean.match(/17(\\d{6})/);if(exp&&/^\\d{6}$/.test(exp[1])){const v=exp[1];out.expiry='20'+v.slice(0,2)+'-'+v.slice(2,4)+'-'+v.slice(4,6);}
+ const smn=clean.match(/240(\\d+?)(?=422\\d{3}|$)/);if(smn)out.smn=smn[1];
+ const lot=clean.match(/10(.+?)(?=17\\d{6}|240\\d+|422\\d{3}|$)/);if(lot)out.lot=lot[1];
+ return out;
+}
 function stopCamera(){scanActive=false;if(scanner){try{scanner.stop()}catch(e){}scanner=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('video').srcObject=null;$('scanBox').classList.add('hidden')}
 async function startScan(){
  $('scanBox').classList.remove('hidden');$('barcodeEntry').classList.add('hidden');
@@ -83,7 +98,7 @@ async function startScan(){
 }
 $('openScan').onclick=startScan;$('stopScan').onclick=stopCamera;$('manualNew').onclick=()=>openForm();$('closeForm').onclick=()=> $('formPanel').classList.add('hidden');$('clearForm').onclick=()=>openForm({barcode:$('barcodeValue').value});
 $('cancelBarcode').onclick=()=>{$('barcodeEntry').classList.add('hidden');stopCamera()};
-$('useBarcode').onclick=()=>{const code=$('barcodeRaw').value.trim();if(!code){alert('Sila scan atau masukkan kod barcode.');return}const existing=records.find(r=>r.barcode===code);if(existing){openForm(existing);alert('Barcode ini sudah ada dalam rekod. Semak atau kemas kini rekod lot tersebut.')}else openForm({barcode:code});$('barcodeEntry').classList.add('hidden');stopCamera()};
+$('useBarcode').onclick=()=>{const code=$('barcodeRaw').value.trim();if(!code){alert('Sila scan atau masukkan kod barcode.');return}const existing=records.find(r=>r.barcode===code);if(existing){openForm(existing);alert('Barcode ini sudah ada dalam rekod. Semak atau kemas kini rekod lot tersebut.')}else openForm(parseGS1(code));$('barcodeEntry').classList.add('hidden');stopCamera()};
 $('stockForm').onsubmit=e=>{e.preventDefault();const id=$('recordId').value;const rec={id:id||('r'+Date.now()+Math.random().toString(36).slice(2,7)),barcode:$('barcodeValue').value.trim(),name:$('name').value.trim(),lot:$('lot').value.trim(),smn:$('smn').value.trim(),expiry:$('expiry').value,qty:Number($('qty').value),location:$('location').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(!rec.name||!rec.lot||!rec.location||!Number.isFinite(rec.qty)||rec.qty<0){alert('Sila lengkapkan nama reagent, lot, baki stok dan location.');return}const idx=records.findIndex(r=>r.id===id);if(idx>=0)records[idx]=rec;else records.push(rec);persist();$('formPanel').classList.add('hidden');$('search').value='';};
 $('search').oninput=render;
 function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
