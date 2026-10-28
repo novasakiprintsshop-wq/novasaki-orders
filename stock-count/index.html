@@ -73,24 +73,26 @@ function editRecord(id){const r=records.find(x=>x.id===id);if(r)openForm(r)}
 function deleteRecord(id){if(!confirm('Padam rekod lot ini?'))return;records=records.filter(r=>r.id!==id);persist()}
 function parseGS1(raw){
  const s=String(raw||'').trim();const out={barcode:s};
- // Some scanners return human-readable GS1 application identifiers in parentheses.
- const tokens=[...s.matchAll(/\((01|10|17|240|422)\)([^()\x1D]*)/g)];
+ // GS1 decoders may return human-readable AIs in parentheses.
+ const tokens=[...s.matchAll(/\\((01|10|17|240|422)\\)\\s*([^()\\x1D]*)/g)];
  if(tokens.length){
   for(const m of tokens){
    const ai=m[1],v=m[2].trim();
-   if(ai==='10')out.lot=v;
-   if(ai==='17'&&/^\d{6}$/.test(v)){const d=v;out.expiry='20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6);}
-   if(ai==='240')out.smn=v;
    if(ai==='01')out.gtin=v;
+   if(ai==='10')out.lot=v;
+   if(ai==='17'&&/^\\d{6}$/.test(v)){const d=v;out.expiry='20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6);}
+   if(ai==='240')out.smn=v;
   }
   return out;
  }
- // Native GS1 DataMatrix data usually uses fixed-length AIs and group separators.
- const clean=s.replace(/[\x1D\x1E\x04]/g,'');
- const gtin=clean.match(/^01(\d{14})/);if(gtin)out.gtin=gtin[1];
- const exp=clean.match(/17(\d{6})/);if(exp&&/^\d{6}$/.test(exp[1])){const d=exp[1];out.expiry='20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6);}
- const smn=clean.match(/240(.+?)(?=422\d{3}|$)/);if(smn)out.smn=smn[1];
- const lot=clean.match(/10(.+?)(?=17\d{6}|240|422\d{3}|$)/);if(lot)out.lot=lot[1];
+ // Other decoders return raw GS1 data with a ]d2 symbology prefix and group separators.
+ const clean=s.replace(/^\\]d2/i,'').replace(/[\\x1D\\x1E\\x04]/g,'');
+ const seq=clean.match(/^01(\\d{14})10(.+?)17(\\d{6})240(.+?)422(\\d{3})$/);
+ if(seq){out.gtin=seq[1];out.lot=seq[2];const d=seq[3];out.expiry='20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6);out.smn=seq[4];return out;}
+ const gtin=clean.match(/(?:^|[^0-9])01(\\d{14})/);if(gtin)out.gtin=gtin[1];
+ const exp=clean.match(/17(\\d{6})/);if(exp){const d=exp[1];out.expiry='20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6);}
+ const smn=clean.match(/240([0-9]{6,})(?=422\\d{3}|$)/);if(smn)out.smn=smn[1];
+ const lot=clean.match(/10([A-Za-z0-9]+?)(?=17\\d{6}|240|422\\d{3}|$)/);if(lot)out.lot=lot[1];
  return out;
 }
 function stopCamera(){scanActive=false;if(scanner){try{scanner.stop()}catch(e){}scanner=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('video').srcObject=null;$('scanBox').classList.add('hidden')}
