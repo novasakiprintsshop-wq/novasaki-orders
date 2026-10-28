@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#173f35">
+<title>Atellica Stock Count</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{color-scheme:light;--green:#173f35;--mint:#eaf3ef;--line:#dce5e0;--ink:#1c2924;--muted:#64736c;--white:#fff;--amber:#fff2d6;--red:#ffe7e7}
+*{box-sizing:border-box}body{margin:0;background:#f5f7f6;color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}header{background:var(--green);color:white;padding:22px 17px 19px}header h1{font-size:22px;margin:0 0 4px}header p{margin:0;color:#dcebe4;font-size:13px}.wrap{max-width:760px;margin:auto;padding:14px 12px 42px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.stat,.panel,.group{background:white;border:1px solid var(--line);border-radius:14px}.stat{padding:12px 9px}.stat small{display:block;color:var(--muted);font-size:11px}.stat strong{font-size:22px}.panel{padding:15px;margin-bottom:12px}.panel h2{font-size:16px;margin:0 0 12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:11px 13px;font-weight:650;font-size:14px;cursor:pointer;background:var(--green);color:white}.btn.secondary{background:var(--mint);color:var(--green)}.btn.danger{background:#fff0f0;color:#a02a2a}.btn:disabled{opacity:.5}label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px}input,select{width:100%;padding:11px 10px;border:1px solid #cbd7d0;border-radius:9px;font:inherit;background:white;color:var(--ink);min-width:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.field{margin-bottom:11px}.field.full{grid-column:1/-1}.muted{color:var(--muted);font-size:12px}.hidden{display:none!important}.scanbox{border:1px dashed #8ca99b;background:#f7fbf8;padding:14px;border-radius:12px;margin-top:12px}video{width:100%;max-height:280px;background:#14251e;border-radius:10px;object-fit:cover}.group{margin-bottom:10px;overflow:hidden}.grouphead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 14px;background:#f0f6f2}.grouphead strong{font-size:15px}.total{white-space:nowrap;background:var(--mint);color:var(--green);border-radius:8px;padding:5px 8px;font-weight:750}.lot{padding:13px 14px;border-top:1px solid var(--line)}.lotrow{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.lotmeta{font-size:12px;color:var(--muted);margin-top:4px}.qty{font-weight:750;font-size:16px;white-space:nowrap}.lotactions{display:flex;gap:7px;margin-top:10px}.lotactions .btn{padding:7px 10px;font-size:12px}.warning{background:var(--amber);padding:10px;border-radius:9px;font-size:12px;margin-bottom:10px}.expired{background:var(--red)}.empty{text-align:center;color:var(--muted);padding:24px 10px}.topline{display:flex;justify-content:space-between;align-items:center;gap:10px}.search{margin-bottom:10px}.smallbtn{padding:7px 9px;font-size:12px}
+@media(max-width:440px){.grid{grid-template-columns:1fr 1fr}.stat strong{font-size:19px}.panel{padding:12px}.btn{padding:10px 11px}.field.full{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header><h1>Atellica Stock Count</h1><p>Rekod kiraan fizikal reagent sahaja</p></header>
+<main class="wrap">
+<div class="stats"><div class="stat"><small>Nama reagent</small><strong id="statNames">0</strong></div><div class="stat"><small>Jumlah lot</small><strong id="statLots">0</strong></div><div class="stat"><small>Total unit</small><strong id="statQty">0</strong></div></div>
+<div class="panel">
+<div class="topline"><h2>Scan reagent</h2><span class="muted">Guna kamera telefon</span></div>
+<div class="actions"><button class="btn" id="openScan">▦ Scan barcode</button><button class="btn secondary" id="manualNew">＋ Masuk manual</button></div>
+<div id="scanBox" class="scanbox hidden"><video id="video" playsinline muted></video><p id="scanMessage" class="muted">Halakan kamera ke barcode pada label reagent.</p><div class="actions"><button class="btn secondary" id="stopScan">Tutup kamera</button></div></div>
+<div id="barcodeEntry" class="scanbox hidden"><div class="field"><label>Nilai barcode / kod yang dibaca</label><input id="barcodeRaw" placeholder="Barcode akan muncul di sini"></div><div class="actions"><button class="btn" id="useBarcode">Gunakan kod ini</button><button class="btn secondary" id="cancelBarcode">Batal</button></div></div>
+<p class="muted">Nota: sesetengah barcode hanya mengandungi kod produk. Semak dan lengkapkan lot, SMN serta expiry date jika tidak dapat dibaca secara automatik.</p>
+</div>
+<div class="panel hidden" id="formPanel"><div class="topline"><h2 id="formTitle">Rekod reagent</h2><button class="btn secondary smallbtn" id="closeForm">Tutup</button></div>
+<form id="stockForm"><input id="recordId" type="hidden"><input id="barcodeValue" type="hidden">
+<div class="grid">
+<div class="field full"><label for="name">Nama reagent *</label><input id="name" required placeholder="Contoh: Albumin" autocomplete="off"></div>
+<div class="field"><label for="lot">Lot number *</label><input id="lot" required placeholder="Lot no."></div>
+<div class="field"><label for="smn">SMN number</label><input id="smn" placeholder="SMN no."></div>
+<div class="field"><label for="expiry">Expiry date</label><input id="expiry" type="date"></div>
+<div class="field"><label for="qty">Baki fizikal (unit) *</label><input id="qty" type="number" min="0" step="1" required placeholder="0"></div>
+<div class="field full"><label for="location">Location *</label><input id="location" required list="locations" placeholder="Contoh: Level 1 / Rack A"><datalist id="locations"></datalist></div>
+<div class="field full"><label for="notes">Nota (pilihan)</label><input id="notes" placeholder="Contoh: kotak belum dibuka"></div>
+</div>
+<div class="actions"><button class="btn" type="submit">Simpan rekod</button><button class="btn secondary" type="button" id="clearForm">Kosongkan</button></div>
+</form></div>
+<div class="panel">
+<div class="topline"><h2>Rekod kiraan</h2><span class="muted" id="saveStatus">Disimpan pada peranti ini</span></div>
+<input class="search" id="search" placeholder="Cari nama reagent, lot, SMN atau location…">
+<div class="actions" style="margin-bottom:12px"><button class="btn secondary" id="exportCsv">Export CSV</button><button class="btn secondary" id="exportJson">Backup data</button><button class="btn secondary" id="importBtn">Import backup</button><button class="btn danger" id="clearAll">Padam semua</button><input type="file" id="importFile" accept="application/json" class="hidden"></div>
+<div id="records"></div>
+</div>
+<p class="muted">Data disimpan dalam browser pada peranti ini. Export CSV untuk semak/pindahkan jumlah kiraan; backup JSON untuk simpan atau pulihkan rekod. Data tidak diselaraskan automatik ke peranti lain.</p>
+</main>
+<script>
+const KEY='atellicaStockCount.v1';
+let records=load(),stream=null,scanner=null,scanActive=false;
+const $=id=>document.getElementById(id);
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(records));$('saveStatus').textContent='Disimpan pada peranti ini';render()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function norm(s){return String(s||'').trim().toLocaleLowerCase()}
+function sum(items){return items.reduce((a,r)=>a+(Number(r.qty)||0),0)}
+function render(){
+ const names=new Set(records.map(r=>norm(r.name))).size;
+ $('statNames').textContent=names;$('statLots').textContent=records.length;$('statQty').textContent=sum(records);
+ const q=norm($('search').value);const filtered=records.filter(r=>[r.name,r.lot,r.smn,r.location,r.barcode,r.notes].some(v=>norm(v).includes(q)));
+ const groups=new Map();filtered.forEach(r=>{const k=norm(r.name)||'(未命名 reagent)';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r)});
+ const sorted=[...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+ if(!sorted.length){$('records').innerHTML='<div class="empty">Belum ada rekod.<br>Tekan “Scan barcode” atau “Masuk manual” untuk mula.</div>';return}
+ $('records').innerHTML=sorted.map(([k,items])=>'<section class="group"><div class="grouphead"><strong>'+esc(items[0].name||'Tanpa nama')+'</strong><span class="total">'+sum(items)+' unit total</span></div>'+items.sort((a,b)=>(a.expiry||'9999').localeCompare(b.expiry||'9999')).map(r=>{
+ const isExp=r.expiry&&r.expiry<new Date().toISOString().slice(0,10);
+ return '<div class="lot"><div class="lotrow"><div><strong>Lot: '+esc(r.lot||'—')+'</strong><div class="lotmeta">SMN: '+esc(r.smn||'—')+' · Expiry: '+esc(r.expiry||'—')+(isExp?' · EXPIRED':'')+'</div><div class="lotmeta">Location: '+esc(r.location||'—')+(r.barcode?' · Barcode: '+esc(r.barcode):'')+'</div>'+(r.notes?'<div class="lotmeta">Nota: '+esc(r.notes)+'</div>':'')+'</div><div class="qty">'+Number(r.qty||0)+' unit</div></div><div class="lotactions"><button class="btn secondary" data-edit="'+esc(r.id)+'">Edit</button><button class="btn danger" data-delete="'+esc(r.id)+'">Padam</button></div></div>'
+ }).join('')+'</section>').join('');
+ document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editRecord(b.dataset.edit));
+ document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>deleteRecord(b.dataset.delete));
+ const locs=[...new Set(records.map(r=>r.location).filter(Boolean))].sort();$('locations').innerHTML=locs.map(l=>'<option value="'+esc(l)+'"></option>').join('');
+}
+function openForm(data={}){$('formPanel').classList.remove('hidden');$('formTitle').textContent=data.id?'Edit rekod':'Rekod reagent';$('recordId').value=data.id||'';$('barcodeValue').value=data.barcode||'';$('name').value=data.name||'';$('lot').value=data.lot||'';$('smn').value=data.smn||'';$('expiry').value=data.expiry||'';$('qty').value=data.qty??'';$('location').value=data.location||'';$('notes').value=data.notes||'';$('formPanel').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('name').focus(),150)}
+function editRecord(id){const r=records.find(x=>x.id===id);if(r)openForm(r)}
+function deleteRecord(id){if(!confirm('Padam rekod lot ini?'))return;records=records.filter(r=>r.id!==id);persist()}
+function stopCamera(){scanActive=false;if(scanner){try{scanner.stop()}catch(e){}scanner=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('video').srcObject=null;$('scanBox').classList.add('hidden')}
+async function startScan(){
+ $('scanBox').classList.remove('hidden');$('barcodeEntry').classList.add('hidden');
+ if(!('BarcodeDetector'in window)){ $('scanMessage').textContent='Scan automatik tidak disokong oleh browser ini. Masukkan kod barcode secara manual di bawah.';$('barcodeEntry').classList.remove('hidden');$('barcodeRaw').value='';return}
+ try{
+  const supported=await BarcodeDetector.getSupportedFormats();const formats=['code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','qr_code'].filter(x=>supported.includes(x));scanner=new BarcodeDetector({formats});
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('video').srcObject=stream;await $('video').play();scanActive=true;$('scanMessage').textContent='Mengimbas… tahan barcode dalam bingkai kamera.';
+  const loop=async()=>{if(!scanActive)return;try{const hits=await scanner.detect($('video'));if(hits.length){const code=hits[0].rawValue;stopCamera();$('barcodeRaw').value=code;$('barcodeEntry').classList.remove('hidden');$('scanMessage').textContent='Barcode berjaya dibaca. Semak kod di bawah.';return}}catch(e){}requestAnimationFrame(loop)};requestAnimationFrame(loop);
+ }catch(e){$('scanMessage').textContent='Kamera tidak dapat dibuka. Benarkan akses kamera atau masukkan kod secara manual.';$('barcodeEntry').classList.remove('hidden');$('barcodeRaw').value=''}
+}
+$('openScan').onclick=startScan;$('stopScan').onclick=stopCamera;$('manualNew').onclick=()=>openForm();$('closeForm').onclick=()=> $('formPanel').classList.add('hidden');$('clearForm').onclick=()=>openForm({barcode:$('barcodeValue').value});
+$('cancelBarcode').onclick=()=>{$('barcodeEntry').classList.add('hidden');stopCamera()};
+$('useBarcode').onclick=()=>{const code=$('barcodeRaw').value.trim();if(!code){alert('Sila scan atau masukkan kod barcode.');return}const existing=records.find(r=>r.barcode===code);if(existing){openForm(existing);alert('Barcode ini sudah ada dalam rekod. Semak atau kemas kini rekod lot tersebut.')}else openForm({barcode:code});$('barcodeEntry').classList.add('hidden');stopCamera()};
+$('stockForm').onsubmit=e=>{e.preventDefault();const id=$('recordId').value;const rec={id:id||('r'+Date.now()+Math.random().toString(36).slice(2,7)),barcode:$('barcodeValue').value.trim(),name:$('name').value.trim(),lot:$('lot').value.trim(),smn:$('smn').value.trim(),expiry:$('expiry').value,qty:Number($('qty').value),location:$('location').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(!rec.name||!rec.lot||!rec.location||!Number.isFinite(rec.qty)||rec.qty<0){alert('Sila lengkapkan nama reagent, lot, baki stok dan location.');return}const idx=records.findIndex(r=>r.id===id);if(idx>=0)records[idx]=rec;else records.push(rec);persist();$('formPanel').classList.add('hidden');$('search').value='';};
+$('search').oninput=render;
+function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$('exportCsv').onclick=()=>{const header=['Reagent Name','Lot Number','SMN Number','Expiry Date','Stock In Hand','Location','Barcode','Notes'];const rows=records.map(r=>[r.name,r.lot,r.smn,r.expiry,r.qty,r.location,r.barcode,r.notes]);const csv=[header,...rows].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');download('atellica-stock-count.csv','\ufeff'+csv,'text/csv;charset=utf-8')};
+$('exportJson').onclick=()=>download('atellica-stock-count-backup.json',JSON.stringify({version:1,exportedAt:new Date().toISOString(),records},null,2),'application/json');
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());const incoming=Array.isArray(data)?data:data.records;if(!Array.isArray(incoming))throw Error('format');if(!confirm('Import '+incoming.length+' rekod? Rekod dengan ID sama akan diganti; rekod lain dikekalkan.'))return;const map=new Map(records.map(r=>[r.id,r]));incoming.forEach((r,i)=>{if(!r.id)r.id='import'+Date.now()+i;map.set(r.id,r)});records=[...map.values()];persist();alert('Import selesai.');}catch(err){alert('Fail backup tidak sah atau tidak dapat dibaca.')}finally{e.target.value=''}};
+$('clearAll').onclick=()=>{if(confirm('Padam SEMUA rekod kiraan yang tersimpan pada peranti ini? Export backup dahulu jika mahu simpan.')){records=[];persist()}};
+if('serviceWorker'in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+render();
+</script>
+</body></html>
